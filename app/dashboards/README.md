@@ -1,0 +1,1 @@
+Dashboards module – skeleton placeholder
