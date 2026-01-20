@@ -176,12 +176,24 @@ def get_active_role(user_id: str, location_id: str) -> str:
 # ============================================================================
 
 @app.post("/api/orders", response_model=OrderResponse, status_code=201)
-async def create_order(request: CreateOrderRequest):
+async def create_order(request: CreateOrderRequest, user: Dict[str, Any] = Depends(get_current_user)):
     """
     API ENDPOINT 1: Create Order
     State: CREATED
-    Source: PHASE_2_API_SPECIFICATIONS.md
+    Auth: Required
+    Permissions: create_order
     """
+    
+    # Permission check
+    if not check_permission(user.get("roles", []), "create_order"):
+        raise HTTPException(
+            status_code=403,
+            detail={"error": True, "reason_code": "INSUFFICIENT_PERMISSIONS", "message": "You do not have permission to create orders"}
+        )
+    
+    # Use authenticated user context
+    actual_user_id = user.get("user_id")
+    actual_location_id = user.get("location_id")
     
     # Validation 1: Customer exists
     customer = customers_collection.find_one({"id": request.customer_id})
