@@ -362,7 +362,7 @@ async def attach_order_item(order_id: str, request: AttachOrderItemRequest):
     category = product.get("category", "").upper()
     
     # Category enforcement
-    category_validation = CategoryEnforcementService.validate_item_attributes(
+    CategoryEnforcementService.validate_item_attributes(
         product_id=request.product_id,
         attributes=request.attributes,
         prescription_id=request.prescription_id
