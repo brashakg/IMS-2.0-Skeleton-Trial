@@ -31,7 +31,7 @@ const ManagerDashboard = () => {
     <div>
       <PageHeader
         title="Store Manager Dashboard"
-        subtitle={`Store: ${user?.store || 'Not assigned'}`}
+        subtitle={`Store: ${user?.location_name || 'Not assigned'}`}
         breadcrumbs={['Home', 'Dashboard', 'Manager']}
         actions={
           <>
