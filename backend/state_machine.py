@@ -15,7 +15,9 @@ class StateMachineValidator:
         OrderState.CREATED: [OrderState.ITEMS_ATTACHED],
         OrderState.ITEMS_ATTACHED: [OrderState.PRICING_REVIEWED],
         OrderState.PRICING_REVIEWED: [OrderState.PRICING_LOCKED],
-        OrderState.PRICING_LOCKED: [],  # Terminal for Phase 2
+        OrderState.PRICING_LOCKED: [OrderState.BILLED],  # Phase 4
+        OrderState.BILLED: [OrderState.CLOSED],  # Phase 4 (after invoice)
+        OrderState.CLOSED: [],  # Terminal
     }
     
     # Actions allowed per state
@@ -23,7 +25,9 @@ class StateMachineValidator:
         OrderState.CREATED: ["attach_items"],
         OrderState.ITEMS_ATTACHED: ["attach_items", "review_pricing"],
         OrderState.PRICING_REVIEWED: ["request_discount", "lock_pricing"],
-        OrderState.PRICING_LOCKED: [],  # Immutable
+        OrderState.PRICING_LOCKED: ["create_bill"],  # Phase 4
+        OrderState.BILLED: ["record_payment", "generate_invoice"],  # Phase 4
+        OrderState.CLOSED: [],  # Terminal - immutable
     }
     
     @staticmethod
