@@ -43,7 +43,9 @@ class AuditService:
         )
         
         # Insert into MongoDB (append-only)
-        result = audit_logs_collection.insert_one(audit_log.model_dump())
+        audit_doc = audit_log.model_dump()
+        audit_doc["event_id"] = audit_log.id  # Add event_id for queries
+        result = audit_logs_collection.insert_one(audit_doc)
         
         return audit_log.id
     
