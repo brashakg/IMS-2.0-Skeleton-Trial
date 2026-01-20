@@ -45,7 +45,7 @@ class APIService {
   static async attachOrderItem(orderId, data) {
     const response = await fetch(`${API_BASE}/api/orders/${orderId}/items`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(data)
     });
     if (!response.ok) throw await response.json();
@@ -55,7 +55,7 @@ class APIService {
   static async reviewPricing(orderId, userId) {
     const response = await fetch(`${API_BASE}/api/orders/${orderId}/pricing/review`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ requested_by: userId })
     });
     if (!response.ok) throw await response.json();
@@ -65,7 +65,7 @@ class APIService {
   static async requestDiscount(orderId, data) {
     const response = await fetch(`${API_BASE}/api/orders/${orderId}/discounts/request`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(data)
     });
     if (!response.ok) throw await response.json();
@@ -75,7 +75,7 @@ class APIService {
   static async lockPricing(orderId, userId) {
     const response = await fetch(`${API_BASE}/api/orders/${orderId}/pricing/lock`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ locked_by: userId })
     });
     if (!response.ok) throw await response.json();
