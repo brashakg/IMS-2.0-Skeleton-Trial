@@ -36,41 +36,44 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
   return (
     <aside
-      className={`bg-gray-900 text-white w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transform ${
+      className={`bg-gray-900 text-white w-64 space-y-4 py-4 px-2 absolute inset-y-0 left-0 transform ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       } md:relative md:translate-x-0 transition duration-200 ease-in-out z-20`}
     >
       {/* Logo / Brand */}
-      <div className="flex items-center justify-center px-4">
-        <h1 className="text-2xl font-bold">IMS 2.0</h1>
+      <div className="flex items-center justify-center px-4 py-2">
+        <div className="text-center">
+          <h1 className="text-xl font-bold text-brand-primary">IMS 2.0</h1>
+          <p className="text-xs text-gray-400">Retail OS</p>
+        </div>
       </div>
 
       {/* User Info */}
-      <div className="px-4 py-3 bg-gray-800 rounded-lg mx-2">
-        <p className="text-sm font-semibold">{user?.username || 'User'}</p>
-        <p className="text-xs text-gray-400">{user?.roles?.join(', ') || 'No roles'}</p>
+      <div className="px-3 py-2 bg-gray-800 rounded-lg mx-2">
+        <p className="text-sm font-semibold truncate">{user?.username || 'User'}</p>
+        <p className="text-xs text-gray-400 truncate">{user?.roles?.join(', ') || 'No roles'}</p>
         {user?.location_id && (
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-400 truncate mt-0.5">
             {user.location_name || user.location_id}
           </p>
         )}
       </div>
 
       {/* Navigation */}
-      <nav className="space-y-1">
+      <nav className="space-y-1 px-2">
         {visibleItems.map((item) => (
           <Link
             key={item.path}
             to={item.path}
-            className={`flex items-center space-x-3 px-4 py-2.5 rounded-lg transition-colors ${
+            className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors text-sm ${
               isActive(item.path)
-                ? 'bg-blue-600 text-white'
+                ? 'bg-brand-primary text-white'
                 : 'text-gray-300 hover:bg-gray-800'
             } ${
-              item.highlight ? 'border-2 border-yellow-500' : ''
+              item.highlight ? 'border border-yellow-500' : ''
             }`}
           >
-            <span className="text-xl">{item.icon}</span>
+            <span className="text-lg">{item.icon}</span>
             <span className="font-medium">{item.name}</span>
           </Link>
         ))}
@@ -79,8 +82,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       {/* Bottom Section */}
       <div className="absolute bottom-4 left-0 right-0 px-4">
         <div className="text-xs text-gray-500 text-center">
-          <p>System Version: 1.0.0</p>
-          <p className="mt-1">Build Pass #2</p>
+          <p>v1.0.0</p>
         </div>
       </div>
     </aside>
