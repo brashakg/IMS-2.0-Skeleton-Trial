@@ -10,12 +10,14 @@ from uuid import UUID, uuid4
 # ============================================================================
 
 class OrderState(str, Enum):
-    """Order state machine (Phase 2 scope only)"""
+    """Order state machine (Phase 2-4 scope)"""
     CREATED = "CREATED"
     ITEMS_ATTACHED = "ITEMS_ATTACHED"
     PRICING_REVIEWED = "PRICING_REVIEWED"
     PRICING_LOCKED = "PRICING_LOCKED"
-    # BILLED, CLOSED, CANCELLED are Phase 4 (out of scope)
+    BILLED = "BILLED"  # Phase 4
+    CLOSED = "CLOSED"  # Phase 4 (after invoice)
+    # CANCELLED handled separately
 
 
 class DiscountRequestStatus(str, Enum):
