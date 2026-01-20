@@ -1256,6 +1256,9 @@ async def record_payment(bill_id: str, request: RecordPaymentRequest, user: Dict
     Source: PHASE_4_API_LOCK.md
     """
     
+    # Guard: Prevent payment after invoice
+    BillingGuards.prevent_payment_after_invoice(bill_id)
+    
     # Fetch bill
     bill = bills_collection.find_one({"id": bill_id})
     if not bill:
@@ -1263,17 +1266,8 @@ async def record_payment(bill_id: str, request: RecordPaymentRequest, user: Dict
     
     outstanding = bill.get("outstanding_balance", 0.0)
     
-    # Validate payment amount
-    if request.amount > outstanding:
-        raise HTTPException(
-            status_code=400,
-            detail={
-                "error": True,
-                "reason_code": "PAYMENT_EXCEEDS_OUTSTANDING",
-                "message": f"Payment amount {request.amount} exceeds outstanding {outstanding}",
-                "outstanding_balance": outstanding
-            }
-        )
+    # Guard: Validate payment amount
+    PaymentGuards.validate_payment_amount(request.amount, outstanding)
     
     # Record payment
     payment_id = str(uuid4())
