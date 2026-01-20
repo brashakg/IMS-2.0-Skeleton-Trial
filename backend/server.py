@@ -656,6 +656,288 @@ async def request_discount(order_id: str, request: DiscountRequest):
                 "reason_code": "DISCOUNT_NOT_ELIGIBLE",
                 "message": details.get("reason"),
                 "details": details
+
+
+@app.post("/api/discounts/{discount_request_id}/approve", response_model=DiscountApprovalResponse)
+async def approve_discount(discount_request_id: str, request: ApproveDiscountRequest):
+    """
+    API ENDPOINT 5: Approve Discount
+    Source: PHASE_2_API_SPECIFICATIONS.md
+    """
+    
+    # Fetch discount request
+    discount_req = discount_requests_collection.find_one({"id": discount_request_id})
+    if not discount_req:
+        raise HTTPException(status_code=404, detail={"error": True, "reason_code": "ENTITY_NOT_FOUND", "message": "Discount request not found"})
+    
+    # Check status
+    if discount_req["status"] != DiscountRequestStatus.PENDING_APPROVAL.value:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "error": True,
+                "reason_code": "ALREADY_PROCESSED",
+                "message": f"Discount request already {discount_req['status']}"
+            }
+        )
+    
+    # Fetch order to check state
+    order = orders_collection.find_one({"id": discount_req["order_id"]})
+    if order["state"] == OrderState.PRICING_LOCKED.value:
+        raise HTTPException(
+            status_code=409,
+            detail={"error": True, "reason_code": "ORDER_LOCKED", "message": "Cannot approve discount for locked order"}
+        )
+    
+    # TODO: Validate approver authority (simplified for Phase 2)
+    # DiscountEnforcementService.validate_approval_authority(approver_role_id, requested_discount_percent)
+    
+    # Validate approved amount <= requested amount
+    if request.approved_discount_percent > discount_req["requested_discount_percent"]:
+        raise HTTPException(
+            status_code=400,
+            detail={"error": True, "reason_code": "APPROVAL_EXCEEDS_REQUEST", "message": "Approved amount cannot exceed requested amount"}
+        )
+    
+    # Validate approval reason exists
+    if not request.approval_reason or request.approval_reason.strip() == "":
+        raise HTTPException(
+            status_code=400,
+            detail={"error": True, "reason_code": "MISSING_APPROVAL_REASON", "message": "Approval reason is mandatory"}
+        )
+    
+    # Create approval record
+    approval_id = str(uuid4())
+    approval_doc = {
+        "id": approval_id,
+        "discount_request_id": discount_request_id,
+        "approved_by": request.approved_by,
+        "approver_role_id": "system",  # TODO: Fetch actual role
+        "approved_discount_percent": request.approved_discount_percent,
+        "approval_reason": request.approval_reason,
+        "approved_at": datetime.utcnow()
+    }
+    
+    discount_approvals_collection.insert_one(approval_doc)
+    
+    # Update discount request status
+    discount_requests_collection.update_one(
+        {"id": discount_request_id},
+        {"$set": {"status": DiscountRequestStatus.APPROVED.value}}
+    )
+    
+    # Apply discount to order_item
+    order_item = order_items_collection.find_one({"id": discount_req["order_item_id"]})
+    offer_price = order_item.get("offer_price", 0.0)
+    discounted_price = offer_price * (1 - request.approved_discount_percent / 100)
+    
+    order_items_collection.update_one(
+        {"id": discount_req["order_item_id"]},
+        {"$set": {
+            "discount_applied": request.approved_discount_percent,
+            "final_price": discounted_price * order_item["quantity"]
+        }}
+    )
+    
+    # Emit audit events
+    AuditService.emit_event(
+        event_type=AuditEventType.DISCOUNT_APPROVED,
+        entity_type="DISCOUNT_APPROVAL",
+        entity_id=approval_id,
+        action="APPROVE",
+        actor_id=request.approved_by,
+        role_context="system",  # TODO: Fetch actual role
+        trigger_source="POS",
+        payload_snapshot={
+            "discount_request_id": discount_request_id,
+            "requested_percent": discount_req["requested_discount_percent"],
+            "approved_percent": request.approved_discount_percent,
+            "approval_reason": request.approval_reason
+        }
+    )
+    
+    AuditService.emit_event(
+        event_type=AuditEventType.DISCOUNT_APPLIED,
+        entity_type="ORDER_ITEM",
+        entity_id=discount_req["order_item_id"],
+        action="APPLY_DISCOUNT",
+        actor_id="system",
+        role_context="system",
+        trigger_source="SYSTEM",
+        previous_state={"discount": 0},
+        new_state={"discount": request.approved_discount_percent},
+        payload_snapshot={"discount_approval_id": approval_id}
+    )
+    
+    return DiscountApprovalResponse(
+        discount_approval_id=approval_id,
+        discount_request_id=discount_request_id,
+        status="APPROVED",
+        approved_discount_percent=request.approved_discount_percent,
+        approved_by=request.approved_by,
+        approved_at=approval_doc["approved_at"]
+    )
+
+
+@app.post("/api/discounts/{discount_request_id}/reject", response_model=Dict[str, Any])
+async def reject_discount(discount_request_id: str, request: RejectDiscountRequest):
+    """
+    API ENDPOINT 7: Reject Discount
+    Source: PHASE_2_API_SPECIFICATIONS.md
+    """
+    
+    # Fetch discount request
+    discount_req = discount_requests_collection.find_one({"id": discount_request_id})
+    if not discount_req:
+        raise HTTPException(status_code=404, detail={"error": True, "reason_code": "ENTITY_NOT_FOUND", "message": "Discount request not found"})
+    
+    # Check status
+    if discount_req["status"] != DiscountRequestStatus.PENDING_APPROVAL.value:
+        raise HTTPException(
+            status_code=409,
+            detail={"error": True, "reason_code": "ALREADY_PROCESSED", "message": f"Discount request already {discount_req['status']}"}
+        )
+    
+    # Fetch order to check state
+    order = orders_collection.find_one({"id": discount_req["order_id"]})
+    if order["state"] == OrderState.PRICING_LOCKED.value:
+        raise HTTPException(
+            status_code=409,
+            detail={"error": True, "reason_code": "ORDER_LOCKED", "message": "Cannot reject discount for locked order"}
+        )
+    
+    # Validate rejection reason
+    if not request.rejection_reason or request.rejection_reason.strip() == "":
+        raise HTTPException(
+            status_code=400,
+            detail={"error": True, "reason_code": "MISSING_REJECTION_REASON", "message": "Rejection reason is mandatory"}
+        )
+    
+    # Update discount request status
+    discount_requests_collection.update_one(
+        {"id": discount_request_id},
+        {"$set": {
+            "status": DiscountRequestStatus.REJECTED.value,
+            "rejected_by": request.rejected_by,
+            "rejection_reason": request.rejection_reason,
+            "rejected_at": datetime.utcnow()
+        }}
+    )
+    
+    # Emit audit event
+    AuditService.emit_event(
+        event_type=AuditEventType.DISCOUNT_REJECTED,
+        entity_type="DISCOUNT_REQUEST",
+        entity_id=discount_request_id,
+        action="REJECT",
+        actor_id=request.rejected_by,
+        role_context="system",  # TODO: Fetch actual role
+        trigger_source="POS",
+        previous_state=DiscountRequestStatus.PENDING_APPROVAL.value,
+        new_state=DiscountRequestStatus.REJECTED.value,
+        payload_snapshot={
+            "requested_percent": discount_req["requested_discount_percent"],
+            "rejection_reason": request.rejection_reason
+        }
+    )
+    
+    return {
+        "discount_request_id": discount_request_id,
+        "status": "REJECTED",
+        "rejected_by": request.rejected_by,
+        "rejection_reason": request.rejection_reason,
+        "rejected_at": datetime.utcnow().isoformat()
+    }
+
+
+@app.post("/api/orders/{order_id}/pricing/lock", response_model=PricingLockResponse)
+async def lock_pricing(order_id: str, request: LockPricingRequest):
+    """
+    API ENDPOINT 7: Lock Pricing
+    State transition: PRICING_REVIEWED → PRICING_LOCKED (IRREVERSIBLE)
+    Source: PHASE_2_API_SPECIFICATIONS.md
+    """
+    
+    # Fetch order
+    order = orders_collection.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail={"error": True, "reason_code": "ENTITY_NOT_FOUND", "message": "Order not found"})
+    
+    current_state = OrderState(order["state"])
+    
+    # State validation
+    if current_state != OrderState.PRICING_REVIEWED:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "error": True,
+                "reason_code": "INVALID_STATE_FOR_LOCK",
+                "message": "Order must be in PRICING_REVIEWED state",
+                "current_state": current_state.value
+            }
+        )
+    
+    # Check for pending discount approvals
+    pending_approvals = list(discount_requests_collection.find({
+        "order_id": order_id,
+        "status": DiscountRequestStatus.PENDING_APPROVAL.value
+    }))
+    
+    if pending_approvals:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "error": True,
+                "reason_code": "PENDING_DISCOUNT_APPROVALS",
+                "message": "Cannot lock pricing with pending discount approvals",
+                "pending_requests": [req["id"] for req in pending_approvals]
+            }
+        )
+    
+    # Verify pricing snapshot exists
+    pricing_snapshot = order.get("pricing_snapshot")
+    if not pricing_snapshot:
+        raise HTTPException(
+            status_code=400,
+            detail={"error": True, "reason_code": "PRICING_NOT_REVIEWED", "message": "Pricing must be reviewed before locking"}
+        )
+    
+    # Lock pricing (IRREVERSIBLE)
+    locked_at = datetime.utcnow()
+    orders_collection.update_one(
+        {"id": order_id},
+        {"$set": {
+            "state": OrderState.PRICING_LOCKED.value,
+            "pricing_locked_at": locked_at,
+            "pricing_locked_by": request.locked_by,
+            "updated_at": locked_at
+        }}
+    )
+    
+    # Emit audit event
+    AuditService.emit_event(
+        event_type=AuditEventType.PRICING_LOCKED,
+        entity_type="ORDER",
+        entity_id=order_id,
+        action="LOCK_PRICING",
+        actor_id=request.locked_by,
+        role_context="system",  # TODO: Fetch actual role
+        trigger_source="POS",
+        previous_state=OrderState.PRICING_REVIEWED.value,
+        new_state=OrderState.PRICING_LOCKED.value,
+        payload_snapshot=pricing_snapshot
+    )
+    
+    return PricingLockResponse(
+        order_id=order_id,
+        state=OrderState.PRICING_LOCKED,
+        pricing_snapshot=PricingSnapshot(**pricing_snapshot),
+        locked_by=request.locked_by,
+        locked_at=locked_at,
+        immutable=True
+    )
+
+
             }
         )
 
