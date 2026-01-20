@@ -1270,32 +1270,6 @@ async def audit_log_report(entity_type: str = None, user: Dict[str, Any] = Depen
     return {"audit_logs": logs}
 
 
-    if '_id' in enquiry:
-        enquiry['_id'] = str(enquiry['_id'])
-    
-    return enquiry
-
-
-        query["location_id"] = location_id
-    
-    movements = list(stock_movements_collection.find(query).sort("created_at", -1).limit(100))
-    for m in movements:
-        if '_id' in m:
-            m['_id'] = str(m['_id'])
-    return {"movements": movements}
-
-
-    customer_doc = {
-        "id": customer_id,
-        "name": data.get("name"),
-        "mobile": data.get("mobile"),
-        "email": data.get("email"),
-        "created_at": datetime.utcnow()
-    }
-    customers_collection.insert_one(customer_doc)
-    return {"customer_id": customer_id, "name": customer_doc["name"]}
-
-
 @app.get("/api/customers/{customer_id}/patients")
 async def get_customer_patients(customer_id: str):
     """STUB: Get patients for customer (Phase 3A requirement)"""
