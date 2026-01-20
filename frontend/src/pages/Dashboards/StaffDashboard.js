@@ -40,7 +40,7 @@ const StaffDashboard = () => {
     <div>
       <PageHeader
         title="Staff Dashboard"
-        subtitle={`Welcome back, ${user?.name || 'User'}`}
+        subtitle={`Welcome back, ${user?.username || 'User'}`}
         breadcrumbs={['Home', 'Dashboard', 'Staff']}
       />
 
