@@ -2,7 +2,7 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 
 // Import POS screens
-import POSHomeNew from '../pages/POS/POSHomeNew';
+import POSCanvas from '../pages/POS/POSCanvas';
 import PaymentProcessing from '../pages/POS/PaymentProcessing';
 import OrderConfirmation from '../pages/POS/OrderConfirmation';
 import OrderSearch from '../pages/POS/OrderSearch';
@@ -17,8 +17,8 @@ import BarcodePrinting from '../pages/POS/BarcodePrinting';
 const POSRoutes = () => {
   return (
     <Routes>
-      {/* Main POS / Sale Entry (Phase 3A - New Implementation) */}
-      <Route path="/" element={<POSHomeNew />} />
+      {/* Main POS / Sale Entry (Phase 3B - Canvas Model) */}
+      <Route path="/" element={<POSCanvas />} />
       
       {/* Payment & Order Flow */}
       <Route path="/payment" element={<PaymentProcessing />} />
