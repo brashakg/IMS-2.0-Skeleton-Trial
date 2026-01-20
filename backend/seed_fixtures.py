@@ -60,14 +60,20 @@ def seed_test_data():
     locations_collection.insert_many(locations_data)
     print("✓ Locations seeded")
     
-    # 3. Seed Users
+    # 3. Seed Users (ALL ROLES)
     users_data = [
         {"id": "user_sales1", "username": "sales1", "email": "sales1@test.com", "phone": "9876543210", "is_active": True},
-        {"id": "user_manager1", "username": "manager1", "email": "manager1@test.com", "phone": "9876543211", "is_active": True},
-        {"id": "user_admin1", "username": "admin1", "email": "admin1@test.com", "phone": "9876543212", "is_active": True},
+        {"id": "user_cashier1", "username": "cashier1", "email": "cashier1@test.com", "phone": "9876543211", "is_active": True},
+        {"id": "user_optom1", "username": "optom1", "email": "optom1@test.com", "phone": "9876543212", "is_active": True},
+        {"id": "user_manager1", "username": "manager1", "email": "manager1@test.com", "phone": "9876543213", "is_active": True},
+        {"id": "user_area_mgr1", "username": "areamgr1", "email": "areamgr1@test.com", "phone": "9876543214", "is_active": True},
+        {"id": "user_catalog1", "username": "catalog1", "email": "catalog1@test.com", "phone": "9876543215", "is_active": True},
+        {"id": "user_accountant1", "username": "accountant1", "email": "accountant1@test.com", "phone": "9876543216", "is_active": True},
+        {"id": "user_admin1", "username": "admin1", "email": "admin1@test.com", "phone": "9876543217", "is_active": True},
+        {"id": "user_super1", "username": "super1", "email": "super1@test.com", "phone": "9876543218", "is_active": True},
     ]
     users_collection.insert_many(users_data)
-    print("✓ Users seeded")
+    print("✓ Users seeded (9 users)")
     
     # 4. Seed User-Role Assignments
     user_roles_data = [
