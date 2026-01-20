@@ -1189,6 +1189,80 @@ async def get_enquiry(enquiry_id: str, user: Dict[str, Any] = Depends(get_curren
     if not enquiry:
         raise HTTPException(status_code=404, detail={"error": True, "message": "Enquiry not found"})
     
+
+
+# ============================================================================
+# SPRINT 4: REPORTS
+# ============================================================================
+
+@app.get("/api/reports/daily-sales")
+async def daily_sales_report(date: str = None, location_id: str = None, user: Dict[str, Any] = Depends(get_current_user)):
+    """Daily sales report"""
+    from database import db
+    
+    # Build query
+    query = {}
+    if location_id:
+        query["location_id"] = location_id
+    elif "ADMIN" not in user.get("roles", []) and "SUPERADMIN" not in user.get("roles", []):
+        query["location_id"] = user.get("location_id")
+    
+    if date:
+        from datetime import datetime as dt
+        start = dt.fromisoformat(date)
+        query["created_at"] = {"$gte": start, "$lt": start.replace(hour=23, minute=59)}
+    
+    # Aggregate from bills
+    bills = list(bills_collection.find(query))
+    
+    total_bills = len(bills)
+    total_amount = sum(b.get("total_amount", 0) for b in bills)
+    
+    # Get payment breakdown
+    all_payments = []
+    for bill in bills:
+        payments = list(payments_collection.find({"bill_id": bill["id"]}))
+        all_payments.extend(payments)
+    
+    payment_modes = {}
+    for payment in all_payments:
+        mode = payment.get("payment_mode", "UNKNOWN")
+        payment_modes[mode] = payment_modes.get(mode, 0) + payment.get("amount", 0)
+    
+    return {
+        "date": date or "today",
+        "total_bills": total_bills,
+        "total_amount": round(total_amount, 2),
+        "payment_mode_breakdown": payment_modes,
+        "bills": [{"bill_number": b.get("bill_number"), "amount": b.get("total_amount")} for b in bills[:20]]
+    }
+
+
+@app.get("/api/reports/invoices")
+async def invoice_report(user: Dict[str, Any] = Depends(get_current_user)):
+    """Invoice list"""
+    invoices = list(invoices_collection.find({}).sort("issue_date", -1).limit(100))
+    for inv in invoices:
+        if '_id' in inv:
+            inv['_id'] = str(inv['_id'])
+    return {"invoices": invoices}
+
+
+@app.get("/api/reports/audit-log")
+async def audit_log_report(entity_type: str = None, user: Dict[str, Any] = Depends(require_role(["STORE_MANAGER", "ADMIN", "SUPERADMIN"]))):
+    """Audit log viewer (Manager+)"""
+    query = {}
+    if entity_type:
+        query["entity_type"] = entity_type
+    
+    logs = list(audit_logs_collection.find(query).sort("timestamp", -1).limit(200))
+    for log in logs:
+        if '_id' in log:
+            log['_id'] = str(log['_id'])
+    
+    return {"audit_logs": logs}
+
+
     if '_id' in enquiry:
         enquiry['_id'] = str(enquiry['_id'])
     
