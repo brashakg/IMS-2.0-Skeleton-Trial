@@ -1111,10 +1111,11 @@ async def search_products(category: str = "", search: str = ""):
 # ============================================================================
 
 @app.post("/api/bills", response_model=BillResponse, status_code=201)
-async def create_bill(request: CreateBillRequest):
+async def create_bill(request: CreateBillRequest, user: Dict[str, Any] = Depends(require_role(["CASHIER", "STORE_MANAGER", "ADMIN", "SUPERADMIN"]))):
     """
     PHASE 4 API 1: Create Bill
     Entry: order.state == PRICING_LOCKED
+    Auth: Required (Cashier+)
     Source: PHASE_4_API_LOCK.md
     """
     
