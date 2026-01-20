@@ -1020,6 +1020,319 @@ async def search_products(category: str = "", search: str = ""):
     
     products = list(products_collection.find(query))
     
+
+
+# ============================================================================
+# PHASE 4 APIs — Billing, Payments, Invoice
+# ============================================================================
+
+@app.post("/api/bills", response_model=BillResponse, status_code=201)
+async def create_bill(request: CreateBillRequest):
+    """
+    PHASE 4 API 1: Create Bill
+    Entry: order.state == PRICING_LOCKED
+    Source: PHASE_4_API_LOCK.md
+    """
+    
+    # Fetch order
+    order = orders_collection.find_one({"id": request.order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail={"error": True, "reason_code": "ENTITY_NOT_FOUND", "message": "Order not found"})
+    
+    current_state = OrderState(order["state"])
+    
+    # Entry condition: Must be PRICING_LOCKED
+    if current_state != OrderState.PRICING_LOCKED:
+        # Emit blocking audit event
+        AuditService.emit_event(
+            event_type=AuditEventType.BILLING_BLOCKED,
+            entity_type="ORDER",
+            entity_id=request.order_id,
+            action="CREATE_BILL_BLOCKED",
+            actor_id=request.created_by,
+            role_context="system",
+            trigger_source="POS",
+            payload_snapshot={"current_state": current_state.value, "required_state": "PRICING_LOCKED"}
+        )
+        
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "error": True,
+                "reason_code": "BILLING_BEFORE_LOCK",
+                "message": "Cannot create bill before pricing is locked",
+                "current_state": current_state.value,
+                "required_state": "PRICING_LOCKED"
+            }
+        )
+    
+    # Check for pending discount approvals
+    pending = list(discount_requests_collection.find({"order_id": request.order_id, "status": "PENDING_APPROVAL"}))
+    if pending:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "error": True,
+                "reason_code": "PENDING_APPROVALS",
+                "message": "Cannot create bill with pending discount approvals"
+            }
+        )
+    
+    # Generate bill
+    bill_id = str(uuid4())
+    bill_number = f"BILL-{datetime.utcnow().year}-{str(uuid4())[:6].upper()}"
+    
+    pricing_snapshot = order.get("pricing_snapshot")
+    total_amount = pricing_snapshot.get("grand_total", 0.0)
+    
+    bill_doc = {
+        "id": bill_id,
+        "bill_number": bill_number,
+        "order_id": request.order_id,
+        "total_amount": total_amount,
+        "outstanding_balance": total_amount,  # Initially unpaid
+        "pricing_snapshot": pricing_snapshot,
+        "created_by": request.created_by,
+        "created_at": datetime.utcnow()
+    }
+    
+    bills_collection.insert_one(bill_doc)
+    
+    # Update order state
+    orders_collection.update_one(
+        {"id": request.order_id},
+        {"$set": {"state": OrderState.BILLED.value, "updated_at": datetime.utcnow()}}
+    )
+    
+    # Emit audit event
+    AuditService.emit_event(
+        event_type=AuditEventType.BILL_CREATED,
+        entity_type="BILL",
+        entity_id=bill_id,
+        action="CREATE",
+        actor_id=request.created_by,
+        role_context="system",
+        trigger_source="POS",
+        previous_state=OrderState.PRICING_LOCKED.value,
+        new_state=OrderState.BILLED.value,
+        payload_snapshot={"bill_number": bill_number, "total_amount": total_amount}
+    )
+    
+    return BillResponse(
+        bill_id=bill_id,
+        bill_number=bill_number,
+        order_id=request.order_id,
+        total_amount=total_amount,
+        outstanding_balance=total_amount,
+        pricing_snapshot=pricing_snapshot,
+        created_at=bill_doc["created_at"],
+        created_by=request.created_by,
+        immutable=True
+    )
+
+
+@app.get("/api/bills/{bill_id}", response_model=BillResponse)
+async def get_bill(bill_id: str):
+    """PHASE 4 API 2: Get Bill"""
+    
+    bill = bills_collection.find_one({"id": bill_id})
+    if not bill:
+        raise HTTPException(status_code=404, detail={"error": True, "reason_code": "ENTITY_NOT_FOUND", "message": "Bill not found"})
+    
+    return BillResponse(
+        bill_id=bill["id"],
+        bill_number=bill["bill_number"],
+        order_id=bill["order_id"],
+        total_amount=bill["total_amount"],
+        outstanding_balance=bill["outstanding_balance"],
+        pricing_snapshot=bill["pricing_snapshot"],
+        created_at=bill["created_at"],
+        created_by=bill["created_by"],
+        immutable=True
+    )
+
+
+@app.post("/api/bills/{bill_id}/payments", response_model=PaymentResponse, status_code=201)
+async def record_payment(bill_id: str, request: RecordPaymentRequest):
+    """
+    PHASE 4 API 3: Record Payment
+    Supports partial and mixed payments
+    Source: PHASE_4_API_LOCK.md
+    """
+    
+    # Fetch bill
+    bill = bills_collection.find_one({"id": bill_id})
+    if not bill:
+        raise HTTPException(status_code=404, detail={"error": True, "reason_code": "ENTITY_NOT_FOUND", "message": "Bill not found"})
+    
+    outstanding = bill.get("outstanding_balance", 0.0)
+    
+    # Validate payment amount
+    if request.amount > outstanding:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": True,
+                "reason_code": "PAYMENT_EXCEEDS_OUTSTANDING",
+                "message": f"Payment amount {request.amount} exceeds outstanding {outstanding}",
+                "outstanding_balance": outstanding
+            }
+        )
+    
+    # Record payment
+    payment_id = str(uuid4())
+    payment_doc = {
+        "id": payment_id,
+        "bill_id": bill_id,
+        "payment_mode": request.payment_mode.value,
+        "amount": request.amount,
+        "reference": request.reference,
+        "collected_by": request.collected_by,
+        "collected_at": datetime.utcnow()
+    }
+    
+    payments_collection.insert_one(payment_doc)
+    
+    # Update outstanding balance
+    new_outstanding = outstanding - request.amount
+    bills_collection.update_one(
+        {"id": bill_id},
+        {"$set": {"outstanding_balance": new_outstanding}}
+    )
+    
+    # Emit audit event
+    AuditService.emit_event(
+        event_type=AuditEventType.PAYMENT_RECORDED,
+        entity_type="PAYMENT",
+        entity_id=payment_id,
+        action="RECORD",
+        actor_id=request.collected_by,
+        role_context="system",
+        trigger_source="POS",
+        previous_state={"outstanding": outstanding},
+        new_state={"outstanding": new_outstanding},
+        payload_snapshot={
+            "payment_mode": request.payment_mode.value,
+            "amount": request.amount,
+            "reference": request.reference
+        }
+    )
+    
+    return PaymentResponse(
+        payment_id=payment_id,
+        bill_id=bill_id,
+        payment_mode=request.payment_mode,
+        amount=request.amount,
+        reference=request.reference,
+        collected_by=request.collected_by,
+        collected_at=payment_doc["collected_at"],
+        outstanding_after_payment=new_outstanding
+    )
+
+
+@app.get("/api/bills/{bill_id}/payments")
+async def get_bill_payments(bill_id: str):
+    """PHASE 4 API 4: Get All Payments for Bill"""
+    
+    payments = list(payments_collection.find({"bill_id": bill_id}).sort("collected_at", 1))
+    return {"payments": payments}
+
+
+@app.post("/api/invoices", response_model=InvoiceResponse, status_code=201)
+async def generate_invoice(request: GenerateInvoiceRequest):
+    """
+    PHASE 4 API 5: Generate Invoice
+    Requirement: Bill must be fully paid (outstanding == 0)
+    Source: PHASE_4_API_LOCK.md
+    """
+    
+    # Fetch bill
+    bill = bills_collection.find_one({"id": request.bill_id})
+    if not bill:
+        raise HTTPException(status_code=404, detail={"error": True, "reason_code": "ENTITY_NOT_FOUND", "message": "Bill not found"})
+    
+    # Check outstanding balance
+    outstanding = bill.get("outstanding_balance", 0.0)
+    if outstanding > 0.01:  # Allow small rounding difference
+        # Emit blocking audit event
+        AuditService.emit_event(
+            event_type=AuditEventType.INVOICE_BLOCKED,
+            entity_type="BILL",
+            entity_id=request.bill_id,
+            action="INVOICE_GENERATION_BLOCKED",
+            actor_id=request.generated_by,
+            role_context="system",
+            trigger_source="POS",
+            payload_snapshot={"outstanding_balance": outstanding}
+        )
+        
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "error": True,
+                "reason_code": "OUTSTANDING_BALANCE",
+                "message": f"Cannot generate invoice with outstanding balance of ₹{outstanding}",
+                "outstanding_balance": outstanding
+            }
+        )
+    
+    # Generate invoice
+    invoice_id = str(uuid4())
+    invoice_number = f"INV-{datetime.utcnow().year}-{str(uuid4())[:8].upper()}"
+    
+    invoice_doc = {
+        "id": invoice_id,
+        "invoice_number": invoice_number,
+        "bill_id": request.bill_id,
+        "issue_date": datetime.utcnow(),
+        "total_amount": bill.get("total_amount", 0.0),
+        "generated_by": request.generated_by
+    }
+    
+    invoices_collection.insert_one(invoice_doc)
+    
+    # Update order state to CLOSED
+    orders_collection.update_one(
+        {"id": bill["order_id"]},
+        {"$set": {"state": OrderState.CLOSED.value, "updated_at": datetime.utcnow()}}
+    )
+    
+    # Emit audit event
+    AuditService.emit_event(
+        event_type=AuditEventType.INVOICE_GENERATED,
+        entity_type="INVOICE",
+        entity_id=invoice_id,
+        action="GENERATE",
+        actor_id=request.generated_by,
+        role_context="system",
+        trigger_source="POS",
+        previous_state=OrderState.BILLED.value,
+        new_state=OrderState.CLOSED.value,
+        payload_snapshot={"invoice_number": invoice_number, "total_amount": invoice_doc["total_amount"]}
+    )
+    
+    return InvoiceResponse(
+        invoice_id=invoice_id,
+        invoice_number=invoice_number,
+        bill_id=request.bill_id,
+        issue_date=invoice_doc["issue_date"],
+        total_amount=invoice_doc["total_amount"],
+        generated_by=request.generated_by,
+        immutable=True
+    )
+
+
+@app.get("/api/invoices/{invoice_id}")
+async def get_invoice(invoice_id: str):
+    """PHASE 4 API 6: Get Invoice"""
+    
+    invoice = invoices_collection.find_one({"id": invoice_id})
+    if not invoice:
+        raise HTTPException(status_code=404, detail={"error": True, "reason_code": "ENTITY_NOT_FOUND", "message": "Invoice not found"})
+    
+    return invoice
+
+
     if search:
         products = [p for p in products if search.lower() in p.get("name", "").lower()]
     
