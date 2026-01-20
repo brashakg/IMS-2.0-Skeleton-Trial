@@ -1198,6 +1198,10 @@ async def get_enquiry(enquiry_id: str, user: Dict[str, Any] = Depends(get_curren
     if not enquiry:
         raise HTTPException(status_code=404, detail={"error": True, "message": "Enquiry not found"})
     
+    if '_id' in enquiry:
+        enquiry['_id'] = str(enquiry['_id'])
+    
+    return enquiry
 
 
 # ============================================================================
