@@ -14,7 +14,9 @@ from database import (
     bills_collection,
     payments_collection,
     invoices_collection,
-    locations_collection
+    locations_collection,
+    prescriptions_collection,
+    audit_logs_collection
 )
 from models import (
     CreateOrderRequest,
