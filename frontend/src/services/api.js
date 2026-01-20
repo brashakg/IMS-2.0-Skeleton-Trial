@@ -88,9 +88,11 @@ class APIService {
     return response.json();
   }
 
-  // Customers & Patients (Phase 3A stubs)
+  // Customers & Patients
   static async searchCustomers(search = '') {
-    const response = await fetch(`${API_BASE}/api/customers?search=${encodeURIComponent(search)}`);
+    const response = await fetch(`${API_BASE}/api/customers?search=${encodeURIComponent(search)}`, {
+      headers: getAuthHeaders()
+    });
     if (!response.ok) throw await response.json();
     return response.json();
   }
@@ -98,7 +100,7 @@ class APIService {
   static async createCustomer(data) {
     const response = await fetch(`${API_BASE}/api/customers`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(data)
     });
     if (!response.ok) throw await response.json();
@@ -106,7 +108,9 @@ class APIService {
   }
 
   static async getCustomerPatients(customerId) {
-    const response = await fetch(`${API_BASE}/api/customers/${customerId}/patients`);
+    const response = await fetch(`${API_BASE}/api/customers/${customerId}/patients`, {
+      headers: getAuthHeaders()
+    });
     if (!response.ok) throw await response.json();
     return response.json();
   }
@@ -114,7 +118,7 @@ class APIService {
   static async createPatient(data) {
     const response = await fetch(`${API_BASE}/api/patients`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(data)
     });
     if (!response.ok) throw await response.json();
@@ -122,7 +126,9 @@ class APIService {
   }
 
   static async getPatientPrescriptions(patientId) {
-    const response = await fetch(`${API_BASE}/api/patients/${patientId}/prescriptions`);
+    const response = await fetch(`${API_BASE}/api/patients/${patientId}/prescriptions`, {
+      headers: getAuthHeaders()
+    });
     if (!response.ok) throw await response.json();
     return response.json();
   }
@@ -133,7 +139,9 @@ class APIService {
     if (category) params.append('category', category);
     if (search) params.append('search', search);
     
-    const response = await fetch(`${API_BASE}/api/products?${params}`);
+    const response = await fetch(`${API_BASE}/api/products?${params}`, {
+      headers: getAuthHeaders()
+    });
     if (!response.ok) throw await response.json();
     return response.json();
   }
@@ -142,7 +150,7 @@ class APIService {
   static async approveDiscount(discountRequestId, data) {
     const response = await fetch(`${API_BASE}/api/discounts/${discountRequestId}/approve`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(data)
     });
     if (!response.ok) throw await response.json();
@@ -152,7 +160,7 @@ class APIService {
   static async rejectDiscount(discountRequestId, data) {
     const response = await fetch(`${API_BASE}/api/discounts/${discountRequestId}/reject`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(data)
     });
     if (!response.ok) throw await response.json();
@@ -160,7 +168,64 @@ class APIService {
   }
 
   static async getPendingDiscounts() {
-    const response = await fetch(`${API_BASE}/api/discounts/pending`);
+    const response = await fetch(`${API_BASE}/api/discounts/pending`, {
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) throw await response.json();
+    return response.json();
+  }
+
+  // Phase 4: Billing, Payments, Invoice
+  static async createBill(data) {
+    const response = await fetch(`${API_BASE}/api/bills`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!response.ok) throw await response.json();
+    return response.json();
+  }
+
+  static async getBill(billId) {
+    const response = await fetch(`${API_BASE}/api/bills/${billId}`, {
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) throw await response.json();
+    return response.json();
+  }
+
+  static async recordPayment(billId, data) {
+    const response = await fetch(`${API_BASE}/api/bills/${billId}/payments`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!response.ok) throw await response.json();
+    return response.json();
+  }
+
+  static async getBillPayments(billId) {
+    const response = await fetch(`${API_BASE}/api/bills/${billId}/payments`, {
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) throw await response.json();
+    return response.json();
+  }
+
+  static async generateInvoice(data) {
+    const response = await fetch(`${API_BASE}/api/invoices`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!response.ok) throw await response.json();
+    return response.json();
+  }
+
+  static async getInvoice(invoiceId) {
+    const response = await fetch(`${API_BASE}/api/invoices/${invoiceId}`, {
+      headers: getAuthHeaders()
+    });
     if (!response.ok) throw await response.json();
     return response.json();
   }
