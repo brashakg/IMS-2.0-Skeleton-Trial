@@ -22,6 +22,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { name: 'Finance', path: '/finance', icon: '💳', roles: ['ACCOUNTANT', 'ADMIN', 'SUPERADMIN'] },
     { name: 'Tasks & SOPs', path: '/tasks', icon: '✓', roles: [] },
     { name: 'Expenses', path: '/expenses', icon: '💸', roles: [] },
+    { name: 'Reports', path: '/reports', icon: '📊', roles: ['STORE_MANAGER', 'ACCOUNTANT', 'ADMIN', 'SUPERADMIN'] },
     { name: 'Marketplace', path: '/marketplace', icon: '🌐', roles: ['CATALOG_MANAGER', 'ADMIN', 'SUPERADMIN'] },
     { name: 'AI Intelligence', path: '/ai', icon: '🤖', roles: ['SUPERADMIN'], highlight: true },
     { name: 'Setup', path: '/setup', icon: '⚙️', roles: ['ADMIN', 'SUPERADMIN'] },
