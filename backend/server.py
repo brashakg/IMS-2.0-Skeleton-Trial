@@ -1096,6 +1096,49 @@ async def search_customers(search: str = ""):
 async def create_customer(data: Dict[str, Any]):
     """STUB: Create customer (Phase 3A requirement)"""
     customer_id = str(uuid4())
+
+
+# ============================================================================
+# SPRINT 2: INVENTORY APIs
+# ============================================================================
+
+@app.get("/api/stock/{product_id}")
+async def get_product_stock(product_id: str, location_id: str, user: Dict[str, Any] = Depends(get_current_user)):
+    """Get stock for product at location"""
+    quantity = InventoryService.get_stock(product_id, location_id)
+    return {"product_id": product_id, "location_id": location_id, "quantity": quantity}
+
+
+@app.post("/api/stock/in")
+async def stock_in(data: Dict[str, Any], user: Dict[str, Any] = Depends(require_role(["STORE_MANAGER", "ADMIN", "SUPERADMIN"]))):
+    """Record stock in"""
+    InventoryService.stock_in(
+        product_id=data["product_id"],
+        location_id=data["location_id"],
+        quantity=data["quantity"],
+        reference_type=data.get("reference_type", "MANUAL"),
+        reference_id=data.get("reference_id", "")
+    )
+    return {"success": True}
+
+
+@app.get("/api/stock/movements")
+async def get_stock_movements(product_id: str = None, location_id: str = None, user: Dict[str, Any] = Depends(get_current_user)):
+    """Get stock movements"""
+    from database import stock_movements_collection
+    query = {}
+    if product_id:
+        query["product_id"] = product_id
+    if location_id:
+        query["location_id"] = location_id
+    
+    movements = list(stock_movements_collection.find(query).sort("created_at", -1).limit(100))
+    for m in movements:
+        if '_id' in m:
+            m['_id'] = str(m['_id'])
+    return {"movements": movements}
+
+
     customer_doc = {
         "id": customer_id,
         "name": data.get("name"),
