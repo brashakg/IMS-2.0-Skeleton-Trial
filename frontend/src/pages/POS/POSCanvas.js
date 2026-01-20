@@ -37,7 +37,13 @@ const POSCanvas = () => {
   // UI state
   const [showCustomerModal, setShowCustomerModal] = useState(false);
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
+  const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);
+  const [showNewPatientForm, setShowNewPatientForm] = useState(false);
   const [customerSearch, setCustomerSearch] = useState('');
+  
+  // Form state
+  const [newCustomer, setNewCustomer] = useState({ name: '', mobile: '', email: '' });
+  const [newPatient, setNewPatient] = useState({ name: '', age: '', gender: 'M' });
   
   useEffect(() => {
     loadCustomers();
