@@ -182,7 +182,7 @@ async def create_order(request: CreateOrderRequest):
     )
 
 
-@app.post("/api/orders/{order_id}/items", response_model=OrderItemResponse)
+@app.post("/api/orders/{order_id}/items", response_model=OrderItemResponse, status_code=201)
 async def attach_order_item(order_id: str, request: AttachOrderItemRequest):
     """
     API ENDPOINT 2: Attach Order Item
