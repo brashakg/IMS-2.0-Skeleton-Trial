@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global Styles */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* System-enforced priority colors (non-customizable) */
+.priority-high {
+  @apply text-priority-high;
+}
+
+.priority-medium {
+  @apply text-priority-medium;
+}
+
+.priority-low {
+  @apply text-priority-low;
+}
+
+/* Status badges */
+.status-active {
+  @apply bg-status-active text-white;
+}
+
+.status-pending {
+  @apply bg-status-pending text-white;
+}
+
+.status-inactive {
+  @apply bg-status-inactive text-white;
+}
+
+.status-error {
+  @apply bg-status-error text-white;
+}
