@@ -213,16 +213,20 @@ const POSCanvas = () => {
       return;
     }
     
+    setLoading(true);
     try {
       const data = await APIService.reviewPricing(orderId, user?.user_id || 'user_sales1');
       setPricingSnapshot(data.pricing_snapshot);
     } catch (error) {
       console.error('Failed to review pricing:', error);
       alert('❌ Error: ' + (error.detail?.message || 'Pricing review failed'));
+    } finally {
+      setLoading(false);
     }
   };
   
   const handleLockPricing = async () => {
+    setLoading(true);
     try {
       await APIService.lockPricing(orderId, user?.user_id || 'user_sales1');
       alert('✅ Pricing locked successfully!\n\nOrder ready for billing (Phase 4)');
@@ -230,6 +234,8 @@ const POSCanvas = () => {
     } catch (error) {
       console.error('Failed to lock pricing:', error);
       alert('❌ Error: ' + (error.detail?.message || 'Lock failed'));
+    } finally {
+      setLoading(false);
     }
   };
   
