@@ -198,7 +198,7 @@ const POSHomeNew = () => {
         material: 'Plastic',
         index: '1.5',
         coating_type: 'Anti-reflective',
-        power_range_supported': '-6.00 to +6.00',
+        power_range_supported: '-6.00 to +6.00',
         lens_category: 'Standard'
       },
       'ACCESSORIES': {
