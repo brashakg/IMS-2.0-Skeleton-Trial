@@ -1,12 +1,45 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 
-// TODO: Import POS screens
+// Import POS screens
+import POSHome from '../pages/POS/POSHome';
+import PaymentProcessing from '../pages/POS/PaymentProcessing';
+import OrderConfirmation from '../pages/POS/OrderConfirmation';
+import OrderSearch from '../pages/POS/OrderSearch';
+import OrderDetails from '../pages/POS/OrderDetails';
+import DiscountOverrideRequest from '../pages/POS/DiscountOverrideRequest';
+import DiscountApprovals from '../pages/POS/DiscountApprovals';
+import GiftCardManagement from '../pages/POS/GiftCardManagement';
+import PrescriptionAttachment from '../pages/POS/PrescriptionAttachment';
+import DraftOrders from '../pages/POS/DraftOrders';
+import BarcodePrinting from '../pages/POS/BarcodePrinting';
 
 const POSRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<div className="p-8">POS Module - Coming Soon</div>} />
+      {/* Main POS / Sale Entry */}
+      <Route path="/" element={<POSHome />} />
+      
+      {/* Payment & Order Flow */}
+      <Route path="/payment" element={<PaymentProcessing />} />
+      <Route path="/payment/:orderId" element={<PaymentProcessing />} />
+      <Route path="/order-confirm/:orderId" element={<OrderConfirmation />} />
+      
+      {/* Order Management */}
+      <Route path="/orders" element={<OrderSearch />} />
+      <Route path="/orders/:orderId" element={<OrderDetails />} />
+      <Route path="/orders/:orderId/prescription" element={<PrescriptionAttachment />} />
+      <Route path="/drafts" element={<DraftOrders />} />
+      
+      {/* Discount Management */}
+      <Route path="/discount-override" element={<DiscountOverrideRequest />} />
+      <Route path="/approvals/discounts" element={<DiscountApprovals />} />
+      
+      {/* Gift Cards */}
+      <Route path="/gift-cards" element={<GiftCardManagement />} />
+      
+      {/* Barcode Printing */}
+      <Route path="/barcode-print" element={<BarcodePrinting />} />
     </Routes>
   );
 };
