@@ -90,7 +90,7 @@ class DiscountEnforcementService:
         else:
             # Requires approval (exceeds limits)
             return (
-                DiscountRequestStatus.REQUIRES_APPROVAL,
+                DiscountRequestStatus.PENDING_APPROVAL,
                 {
                     "reason": "Discount exceeds limits, approval required",
                     "role_cap": role_cap,
