@@ -209,12 +209,6 @@ class APIService {
     return response.json();
   }
 
-      headers: getAuthHeaders()
-    });
-    if (!response.ok) throw await response.json();
-    return response.json();
-  }
-
   // Products
   static async searchProducts(category = '', search = '') {
     const params = new URLSearchParams();
