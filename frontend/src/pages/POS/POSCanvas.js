@@ -213,7 +213,7 @@ const POSCanvas = () => {
     }
     
     try {
-      const data = await APIService.reviewPricing(orderId, user?.id || 'user_sales1');
+      const data = await APIService.reviewPricing(orderId, user?.user_id || 'user_sales1');
       setPricingSnapshot(data.pricing_snapshot);
     } catch (error) {
       console.error('Failed to review pricing:', error);
