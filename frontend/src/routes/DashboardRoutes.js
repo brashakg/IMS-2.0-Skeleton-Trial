@@ -16,13 +16,16 @@ const DashboardRoutes = () => {
 
   // Determine default dashboard based on highest role priority
   const getDefaultDashboard = () => {
-    if (hasRole('Superadmin')) return '/dashboard/superadmin';
-    if (hasRole('Admin')) return '/dashboard/admin';
-    if (hasRole('Area Manager')) return '/dashboard/area-manager';
-    if (hasRole('Store Manager')) return '/dashboard/manager';
-    if (hasRole('Catalog Manager')) return '/dashboard/catalog';
-    if (hasRole('Accountant')) return '/dashboard/accountant';
-    return '/dashboard/staff'; // Default for all other roles
+    if (hasRole('SUPERADMIN')) return '/dashboard/superadmin';
+    if (hasRole('ADMIN')) return '/dashboard/admin';
+    if (hasRole('AREA_MANAGER')) return '/dashboard/area-manager';
+    if (hasRole('STORE_MANAGER')) return '/dashboard/manager';
+    if (hasRole('CATALOG_MANAGER')) return '/dashboard/catalog';
+    if (hasRole('ACCOUNTANT')) return '/dashboard/accountant';
+    if (hasRole('OPTOMETRIST')) return '/dashboard/staff';
+    if (hasRole('CASHIER')) return '/dashboard/staff';
+    if (hasRole('SALES_STAFF')) return '/dashboard/staff';
+    return '/dashboard/staff';
   };
 
   return (
