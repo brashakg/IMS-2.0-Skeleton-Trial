@@ -9,7 +9,10 @@ from database import (
     products_collection,
     customers_collection,
     patients_collection,
-    user_roles_collection
+    user_roles_collection,
+    bills_collection,
+    payments_collection,
+    invoices_collection
 )
 from models import (
     CreateOrderRequest,
