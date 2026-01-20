@@ -1329,42 +1329,24 @@ async def get_bill_payments(bill_id: str):
 
 
 @app.post("/api/invoices", response_model=InvoiceResponse, status_code=201)
-async def generate_invoice(request: GenerateInvoiceRequest):
+async def generate_invoice(request: GenerateInvoiceRequest, user: Dict[str, Any] = Depends(require_role(["CASHIER", "STORE_MANAGER", "ADMIN", "SUPERADMIN"]))):
     """
     PHASE 4 API 5: Generate Invoice
     Requirement: Bill must be fully paid (outstanding == 0)
     Source: PHASE_4_API_LOCK.md
     """
     
+    # Guard: Prevent duplicate invoice
+    BillingGuards.prevent_duplicate_invoice(request.bill_id)
+    
     # Fetch bill
     bill = bills_collection.find_one({"id": request.bill_id})
     if not bill:
         raise HTTPException(status_code=404, detail={"error": True, "reason_code": "ENTITY_NOT_FOUND", "message": "Bill not found"})
     
-    # Check outstanding balance
+    # Guard: Validate full payment
     outstanding = bill.get("outstanding_balance", 0.0)
-    if outstanding > 0.01:  # Allow small rounding difference
-        # Emit blocking audit event
-        AuditService.emit_event(
-            event_type=AuditEventType.INVOICE_BLOCKED,
-            entity_type="BILL",
-            entity_id=request.bill_id,
-            action="INVOICE_GENERATION_BLOCKED",
-            actor_id=request.generated_by,
-            role_context="system",
-            trigger_source="POS",
-            payload_snapshot={"outstanding_balance": outstanding}
-        )
-        
-        raise HTTPException(
-            status_code=409,
-            detail={
-                "error": True,
-                "reason_code": "OUTSTANDING_BALANCE",
-                "message": f"Cannot generate invoice with outstanding balance of ₹{outstanding}",
-                "outstanding_balance": outstanding
-            }
-        )
+    PaymentGuards.validate_outstanding_for_invoice(outstanding)
     
     # Generate invoice
     invoice_id = str(uuid4())
