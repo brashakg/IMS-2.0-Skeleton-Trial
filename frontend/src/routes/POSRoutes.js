@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 
 // Import POS screens
 import POSCanvas from '../pages/POS/POSCanvas';
+import BillingScreen from '../pages/POS/BillingScreen';
 import PaymentProcessing from '../pages/POS/PaymentProcessing';
 import OrderConfirmation from '../pages/POS/OrderConfirmation';
 import OrderSearch from '../pages/POS/OrderSearch';
@@ -19,6 +20,9 @@ const POSRoutes = () => {
     <Routes>
       {/* Main POS / Sale Entry (Phase 3B - Canvas Model) */}
       <Route path="/" element={<POSCanvas />} />
+      
+      {/* Billing */}
+      <Route path="/billing" element={<BillingScreen />} />
       
       {/* Payment & Order Flow */}
       <Route path="/payment" element={<PaymentProcessing />} />
