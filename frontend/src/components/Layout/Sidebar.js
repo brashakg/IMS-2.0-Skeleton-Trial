@@ -45,9 +45,13 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
       {/* User Info */}
       <div className="px-4 py-3 bg-gray-800 rounded-lg mx-2">
-        <p className="text-sm font-semibold">{user?.name || 'User'}</p>
+        <p className="text-sm font-semibold">{user?.username || 'User'}</p>
         <p className="text-xs text-gray-400">{user?.roles?.join(', ') || 'No roles'}</p>
-        {user?.store && <p className="text-xs text-gray-400">Store: {user.store}</p>}
+        {user?.location_id && (
+          <p className="text-xs text-gray-400">
+            {user.location_name || user.location_id}
+          </p>
+        )}
       </div>
 
       {/* Navigation */}
