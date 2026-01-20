@@ -1,5 +1,6 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Security
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from database import (
     get_database,
     orders_collection,
@@ -12,7 +13,8 @@ from database import (
     user_roles_collection,
     bills_collection,
     payments_collection,
-    invoices_collection
+    invoices_collection,
+    locations_collection
 )
 from models import (
     CreateOrderRequest,
