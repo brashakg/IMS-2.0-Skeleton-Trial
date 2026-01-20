@@ -136,6 +136,75 @@ class APIService {
 
   static async getPatientPrescriptions(patientId) {
     const response = await fetch(`${API_BASE}/api/patients/${patientId}/prescriptions`, {
+
+
+  // Enquiries
+  static async createEnquiry(data) {
+    const response = await fetch(`${API_BASE}/api/enquiries`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!response.ok) await handleApiError(response);
+    return response.json();
+  }
+
+  static async listEnquiries(locationId = null) {
+    const params = locationId ? `?location_id=${locationId}` : '';
+    const response = await fetch(`${API_BASE}/api/enquiries${params}`, {
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) await handleApiError(response);
+    return response.json();
+  }
+
+  static async getEnquiry(enquiryId) {
+    const response = await fetch(`${API_BASE}/api/enquiries/${enquiryId}`, {
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) await handleApiError(response);
+    return response.json();
+  }
+
+  // Stock
+  static async getStock(productId, locationId) {
+    const response = await fetch(`${API_BASE}/api/stock/${productId}?location_id=${locationId}`, {
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) await handleApiError(response);
+    return response.json();
+  }
+
+  // Reports
+  static async getDailySalesReport(date = null, locationId = null) {
+    const params = new URLSearchParams();
+    if (date) params.append('date', date);
+    if (locationId) params.append('location_id', locationId);
+    
+    const response = await fetch(`${API_BASE}/api/reports/daily-sales?${params}`, {
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) await handleApiError(response);
+    return response.json();
+  }
+
+  static async getInvoiceReport() {
+    const response = await fetch(`${API_BASE}/api/reports/invoices`, {
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) await handleApiError(response);
+    return response.json();
+  }
+
+  static async getAuditLog(entityType = null) {
+    const params = entityType ? `?entity_type=${entityType}` : '';
+    const response = await fetch(`${API_BASE}/api/reports/audit-log${params}`, {
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) await handleApiError(response);
+    return response.json();
+  }
+
       headers: getAuthHeaders()
     });
     if (!response.ok) throw await response.json();
