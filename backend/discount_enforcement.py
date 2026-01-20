@@ -1,7 +1,7 @@
 from database import discount_rules_collection, user_roles_collection
 from models import DiscountRequestStatus, CategoryClassification
 from fastapi import HTTPException
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Any
 
 
 class DiscountEnforcementService:
