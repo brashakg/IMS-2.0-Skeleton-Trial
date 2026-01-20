@@ -43,6 +43,7 @@ function App() {
                     {/* Module Routes */}
                     <Route path="/dashboard/*" element={<DashboardRoutes />} />
                     <Route path="/pos/*" element={<POSRoutes />} />
+                    <Route path="/enquiry/*" element={<EnquiryRoutes />} />
                     <Route path="/inventory/*" element={<InventoryRoutes />} />
                     <Route path="/clinical/*" element={<ClinicalRoutes />} />
                     <Route path="/hr/*" element={<HRRoutes />} />
