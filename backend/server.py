@@ -1130,6 +1130,71 @@ async def get_stock_movements(product_id: str = None, location_id: str = None, u
     if product_id:
         query["product_id"] = product_id
     if location_id:
+
+
+# ============================================================================
+# SPRINT 3: ENQUIRY MODULE
+# ============================================================================
+
+@app.post("/api/enquiries")
+async def create_enquiry(data: Dict[str, Any], user: Dict[str, Any] = Depends(get_current_user)):
+    """Create enquiry"""
+    from database import db
+    enquiries_collection = db["enquiries"]
+    
+    enquiry_id = str(uuid4())
+    enquiry_doc = {
+        "id": enquiry_id,
+        "customer_name": data.get("customer_name"),
+        "customer_mobile": data.get("customer_mobile"),
+        "enquiry_details": data.get("enquiry_details"),
+        "location_id": user.get("location_id"),
+        "created_by": user.get("user_id"),
+        "created_at": datetime.utcnow(),
+        "status": "OPEN"
+    }
+    
+    enquiries_collection.insert_one(enquiry_doc)
+    
+    return {"enquiry_id": enquiry_id, "status": "OPEN"}
+
+
+@app.get("/api/enquiries")
+async def list_enquiries(location_id: str = None, user: Dict[str, Any] = Depends(get_current_user)):
+    """List enquiries"""
+    from database import db
+    enquiries_collection = db["enquiries"]
+    
+    query = {}
+    if location_id:
+        query["location_id"] = location_id
+    elif "ADMIN" not in user.get("roles", []) and "SUPERADMIN" not in user.get("roles", []):
+        query["location_id"] = user.get("location_id")
+    
+    enquiries = list(enquiries_collection.find(query).sort("created_at", -1).limit(100))
+    for e in enquiries:
+        if '_id' in e:
+            e['_id'] = str(e['_id'])
+    
+    return {"enquiries": enquiries}
+
+
+@app.get("/api/enquiries/{enquiry_id}")
+async def get_enquiry(enquiry_id: str, user: Dict[str, Any] = Depends(get_current_user)):
+    """Get enquiry details"""
+    from database import db
+    enquiries_collection = db["enquiries"]
+    
+    enquiry = enquiries_collection.find_one({"id": enquiry_id})
+    if not enquiry:
+        raise HTTPException(status_code=404, detail={"error": True, "message": "Enquiry not found"})
+    
+    if '_id' in enquiry:
+        enquiry['_id'] = str(enquiry['_id'])
+    
+    return enquiry
+
+
         query["location_id"] = location_id
     
     movements = list(stock_movements_collection.find(query).sort("created_at", -1).limit(100))
