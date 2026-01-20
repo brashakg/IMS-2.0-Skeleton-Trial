@@ -1,7 +1,7 @@
 from database import products_collection, prescriptions_collection, patients_collection
 from fastapi import HTTPException
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 
 # Category mandatory attributes (from CATEGORY_ATTRIBUTE_MODEL.md)
