@@ -39,7 +39,8 @@ class CategoryClassification(str, Enum):
 
 
 class AuditEventType(str, Enum):
-    """Audit event types (Phase 2 scope)"""
+    """Audit event types (Phase 2-4 scope)"""
+    # Phase 2
     ORDER_CREATED = "ORDER_CREATED"
     ORDER_ITEM_ATTACHED = "ORDER_ITEM_ATTACHED"
     PRICING_REVIEWED = "PRICING_REVIEWED"
@@ -54,6 +55,13 @@ class AuditEventType(str, Enum):
     ORDER_STATE_QUERIED = "ORDER_STATE_QUERIED"
     POST_LOCK_MUTATION_ATTEMPT = "POST_LOCK_MUTATION_ATTEMPT"
     PRESCRIPTION_VALIDATION_FAILED = "PRESCRIPTION_VALIDATION_FAILED"
+    # Phase 4
+    BILL_CREATED = "BILL_CREATED"
+    PAYMENT_RECORDED = "PAYMENT_RECORDED"
+    INVOICE_GENERATED = "INVOICE_GENERATED"
+    BILLING_BLOCKED = "BILLING_BLOCKED"
+    PAYMENT_BLOCKED = "PAYMENT_BLOCKED"
+    INVOICE_BLOCKED = "INVOICE_BLOCKED"
 
 
 # ============================================================================
