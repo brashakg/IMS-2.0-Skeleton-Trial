@@ -368,6 +368,147 @@ async def health_check():
     }
 
 
+@app.post("/api/orders/{order_id}/pricing/review", response_model=PricingReviewResponse)
+async def review_pricing(order_id: str, request: ReviewPricingRequest):
+    """
+    API ENDPOINT 3: Review Pricing
+    State transition: ITEMS_ATTACHED → PRICING_REVIEWED
+    Source: PHASE_2_API_SPECIFICATIONS.md
+    """
+    
+    # Fetch order
+    order = orders_collection.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail={"error": True, "reason_code": "ENTITY_NOT_FOUND", "message": "Order not found"})
+    
+    current_state = OrderState(order["state"])
+    
+    # State validation
+    if current_state != OrderState.ITEMS_ATTACHED:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "error": True,
+                "reason_code": "INVALID_STATE_TRANSITION",
+                "message": "Order must be in ITEMS_ATTACHED state",
+                "current_state": current_state.value
+            }
+        )
+    
+    # Fetch all order items
+    items = list(order_items_collection.find({"order_id": order_id}))
+    if not items:
+        raise HTTPException(
+            status_code=400,
+            detail={"error": True, "reason_code": "ORDER_EMPTY", "message": "Cannot review pricing for order with no items"}
+        )
+    
+    # Pricing computation (SERVER-SIDE ONLY)
+    pricing_items = []
+    subtotal = 0.0
+    discount_eligible_items = []
+    
+    for item in items:
+        item_mrp = item.get("mrp", 0.0)
+        item_offer = item.get("offer_price", item_mrp)
+        item_qty = item.get("quantity", 1)
+        
+        # MRP vs Offer Price validation (HARD BLOCK if Offer > MRP)
+        if item_offer > item_mrp:
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "error": True,
+                    "reason_code": "OFFER_PRICE_EXCEEDS_MRP",
+                    "message": f"Offer price {item_offer} exceeds MRP {item_mrp}",
+                    "violating_item_id": item["id"],
+                    "mrp": item_mrp,
+                    "offer_price": item_offer
+                }
+            )
+        
+        # Determine discount eligibility
+        discount_eligible = (item_offer >= item_mrp)  # Only if Offer == MRP or Offer > MRP (latter blocked above)
+        
+        if discount_eligible:
+            discount_eligible_items.append(item["id"])
+        
+        item_total = item_offer * item_qty
+        subtotal += item_total
+        
+        # Fetch product for category discount cap info
+        product = products_collection.find_one({"id": item["product_id"]})
+        category_classification = product.get("category_classification", "MASS") if product else "MASS"
+        
+        pricing_items.append({
+            "order_item_id": item["id"],
+            "product_name": product.get("name", "Unknown") if product else "Unknown",
+            "category": item.get("category"),
+            "mrp": item_mrp,
+            "offer_price": item_offer,
+            "quantity": item_qty,
+            "item_total": item_total,
+            "discount_eligible": discount_eligible,
+            "category_discount_cap": DiscountEnforcementService._get_category_discount_cap(
+                CategoryClassification(category_classification)
+            )
+        })
+    
+    # GST computation (basic - Phase 2 scope)
+    # TODO: Implement location-based IGST/CGST/SGST logic
+    gst_rate = 0.18  # 18% default
+    gst_amount = subtotal * gst_rate
+    cgst = gst_amount / 2
+    sgst = gst_amount / 2
+    igst = 0.0  # TODO: Inter-state logic
+    
+    grand_total = subtotal + gst_amount
+    
+    # Create pricing snapshot
+    pricing_snapshot = {
+        "items": pricing_items,
+        "subtotal": round(subtotal, 2),
+        "gst_breakdown": {
+            "cgst": round(cgst, 2),
+            "sgst": round(sgst, 2),
+            "igst": round(igst, 2)
+        },
+        "grand_total": round(grand_total, 2),
+        "computed_at": datetime.utcnow().isoformat()
+    }
+    
+    # Update order state
+    orders_collection.update_one(
+        {"id": order_id},
+        {"$set": {
+            "state": OrderState.PRICING_REVIEWED.value,
+            "pricing_snapshot": pricing_snapshot,
+            "updated_at": datetime.utcnow()
+        }}
+    )
+    
+    # Emit audit event
+    AuditService.emit_event(
+        event_type=AuditEventType.PRICING_REVIEWED,
+        entity_type="ORDER",
+        entity_id=order_id,
+        action="PRICE_REVIEW",
+        actor_id=request.requested_by,
+        role_context="system",  # TODO: Fetch actual role
+        trigger_source="POS",
+        previous_state=OrderState.ITEMS_ATTACHED.value,
+        new_state=OrderState.PRICING_REVIEWED.value,
+        payload_snapshot=pricing_snapshot
+    )
+    
+    return PricingReviewResponse(
+        order_id=order_id,
+        pricing_snapshot=PricingSnapshot(**pricing_snapshot),
+        state=OrderState.PRICING_REVIEWED,
+        discount_eligible_items=discount_eligible_items
+    )
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("server:app", host="0.0.0.0", port=8001, reload=True)
