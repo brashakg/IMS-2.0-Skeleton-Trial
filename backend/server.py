@@ -1098,6 +1098,15 @@ async def search_customers(search: str = ""):
 async def create_customer(data: Dict[str, Any]):
     """STUB: Create customer (Phase 3A requirement)"""
     customer_id = str(uuid4())
+    customer_doc = {
+        "id": customer_id,
+        "name": data.get("name"),
+        "mobile": data.get("mobile"),
+        "email": data.get("email"),
+        "created_at": datetime.utcnow()
+    }
+    customers_collection.insert_one(customer_doc)
+    return {"customer_id": customer_id, "name": customer_doc["name"]}
 
 
 # ============================================================================
