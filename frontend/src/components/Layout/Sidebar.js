@@ -36,53 +36,47 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
   return (
     <aside
-      className={`bg-gray-900 text-white w-64 space-y-4 py-4 px-2 absolute inset-y-0 left-0 transform ${
+      className={`bg-white border-r border-gray-200 w-64 space-y-1 py-6 px-3 absolute inset-y-0 left-0 transform ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
-      } md:relative md:translate-x-0 transition duration-200 ease-in-out z-20`}
+      } md:relative md:translate-x-0 transition duration-200 ease-in-out z-20 shadow-sm`}
     >
       {/* Logo / Brand */}
-      <div className="flex items-center justify-center px-4 py-2">
-        <div className="text-center">
-          <h1 className="text-xl font-bold text-brand-primary">IMS 2.0</h1>
-          <p className="text-xs text-gray-400">Retail OS</p>
-        </div>
+      <div className="px-3 py-4 mb-4">
+        <h1 className="text-xl font-bold text-gray-900">IMS 2.0</h1>
+        <p className="text-xs text-gray-500 mt-1">Retail Operating System</p>
       </div>
 
       {/* User Info */}
-      <div className="px-3 py-2 bg-gray-800 rounded-lg mx-2">
-        <p className="text-sm font-semibold truncate">{user?.username || 'User'}</p>
-        <p className="text-xs text-gray-400 truncate">{user?.roles?.join(', ') || 'No roles'}</p>
-        {user?.location_id && (
-          <p className="text-xs text-gray-400 truncate mt-0.5">
-            {user.location_name || user.location_id}
-          </p>
-        )}
+      <div className="px-3 py-3 bg-gray-50 rounded-lg mb-4 mx-1">
+        <p className="text-sm font-semibold text-gray-900 truncate">{user?.username || 'User'}</p>
+        <p className="text-xs text-gray-600 truncate mt-0.5">{user?.roles?.join(', ') || 'No roles'}</p>
+        <p className="text-xs text-gray-500 truncate mt-1">{user?.location_name || user?.location_id}</p>
       </div>
 
       {/* Navigation */}
-      <nav className="space-y-1 px-2">
+      <nav className="space-y-0.5">
         {visibleItems.map((item) => (
           <Link
             key={item.path}
             to={item.path}
-            className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors text-sm ${
+            className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all text-sm ${
               isActive(item.path)
-                ? 'bg-brand-primary text-white'
-                : 'text-gray-300 hover:bg-gray-800'
+                ? 'bg-brand-primary text-white shadow-sm'
+                : 'text-gray-700 hover:bg-gray-100'
             } ${
-              item.highlight ? 'border border-yellow-500' : ''
+              item.highlight ? 'border border-alert-warning bg-yellow-50' : ''
             }`}
           >
-            <span className="text-lg">{item.icon}</span>
+            <span className="text-base">{item.icon}</span>
             <span className="font-medium">{item.name}</span>
           </Link>
         ))}
       </nav>
 
-      {/* Bottom Section */}
-      <div className="absolute bottom-4 left-0 right-0 px-4">
-        <div className="text-xs text-gray-500 text-center">
-          <p>v1.0.0</p>
+      {/* Bottom Info */}
+      <div className="absolute bottom-4 left-0 right-0 px-6">
+        <div className="text-xs text-gray-400 text-center border-t border-gray-200 pt-4">
+          <p>Version 1.0.0</p>
         </div>
       </div>
     </aside>
