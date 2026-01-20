@@ -22,9 +22,11 @@ export const AuthProvider = ({ children }) => {
       // Verify token by fetching current user
       APIService.getCurrentUser()
         .then(data => setUser(data.user))
-        .catch(() => {
-          // Token invalid, clear it
+        .catch((error) => {
+          // Token invalid or expired, clear it
+          console.log('Token validation failed:', error);
           localStorage.removeItem('ims_token');
+          setUser(null);
         })
         .finally(() => setLoading(false));
     } else {
