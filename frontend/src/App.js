@@ -55,6 +55,7 @@ function App() {
                     <Route path="/marketplace/*" element={<MarketplaceRoutes />} />
                     <Route path="/ai/*" element={<AIRoutes />} />
                     <Route path="/setup/*" element={<SetupRoutes />} />
+                    <Route path="/reports/*" element={<ReportsRoutes />} />
 
                     {/* 404 Not Found */}
                     <Route path="*" element={<div className="p-8">404 - Page Not Found</div>} />
