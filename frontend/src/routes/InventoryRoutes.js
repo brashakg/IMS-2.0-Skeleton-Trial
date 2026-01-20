@@ -1,12 +1,12 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-
-// TODO: Import Inventory screens
+import StockMaster from '../pages/Inventory/StockMaster';
 
 const InventoryRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<div className="p-8">Inventory Module - Coming Soon</div>} />
+      <Route path="/" element={<StockMaster />} />
+      <Route path="/stock" element={<StockMaster />} />
     </Routes>
   );
 };
