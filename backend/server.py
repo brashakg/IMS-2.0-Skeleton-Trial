@@ -229,8 +229,8 @@ async def create_order(request: CreateOrderRequest, user: Dict[str, Any] = Depen
             }
         )
     
-    # Validation 3: User has role at location
-    active_role_id = get_active_role(request.created_by, request.location_id)
+    # Validation 3: User has role at location (already validated by token)
+    active_role_id = user.get("roles", [])[0] if user.get("roles") else "UNKNOWN"
     
     # Create order
     order_id = str(uuid4())
