@@ -342,19 +342,73 @@ const POSCanvas = () => {
                 <p className="text-xs text-blue-700">Age: {selectedPatient.age}, {selectedPatient.gender}</p>
               </div>
             ) : selectedCustomer ? (
-              <div className="space-y-2">
-                {patients.map((patient) => (
-                  <div
-                    key={patient.id}
-                    onClick={() => handlePatientSelect(patient)}
-                    className="p-2 border rounded cursor-pointer hover:bg-blue-50 text-sm"
-                  >
-                    <p className="font-medium">{patient.name}</p>
-                    <p className="text-xs text-gray-600">Age: {patient.age}</p>
+              showNewPatientForm ? (
+                <div className="space-y-3">
+                  <div className="bg-blue-50 p-2 rounded text-xs">
+                    <p className="text-blue-800 font-medium">New Patient for {selectedCustomer.name}</p>
                   </div>
-                ))}
-                <Button variant="outline" size="sm" className="w-full">+ New Patient</Button>
-              </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Name *</label>
+                    <input
+                      type="text"
+                      value={newPatient.name}
+                      onChange={(e) => setNewPatient({ ...newPatient, name: e.target.value })}
+                      placeholder="Patient name"
+                      className="w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Age *</label>
+                    <input
+                      type="number"
+                      value={newPatient.age}
+                      onChange={(e) => setNewPatient({ ...newPatient, age: e.target.value })}
+                      placeholder="Age"
+                      className="w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Gender *</label>
+                    <select
+                      value={newPatient.gender}
+                      onChange={(e) => setNewPatient({ ...newPatient, gender: e.target.value })}
+                      className="w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="M">Male</option>
+                      <option value="F">Female</option>
+                      <option value="O">Other</option>
+                    </select>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button variant="primary" size="sm" className="flex-1" onClick={handleCreateNewPatient}>
+                      Create
+                    </Button>
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => setShowNewPatientForm(false)}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {patients.map((patient) => (
+                    <div
+                      key={patient.id}
+                      onClick={() => handlePatientSelect(patient)}
+                      className="p-2 border rounded cursor-pointer hover:bg-blue-50 text-sm"
+                    >
+                      <p className="font-medium">{patient.name}</p>
+                      <p className="text-xs text-gray-600">Age: {patient.age}</p>
+                    </div>
+                  ))}
+                  <Button variant="primary" size="sm" className="w-full" onClick={() => setShowNewPatientForm(true)}>
+                    + New Patient
+                  </Button>
+                </div>
+              )
             ) : (
               <p className="text-sm text-gray-400">Select customer first</p>
             )}
