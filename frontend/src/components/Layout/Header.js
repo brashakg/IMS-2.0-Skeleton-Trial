@@ -60,9 +60,9 @@ const Header = ({ toggleSidebar }) => {
           <div className="relative">
             <button className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 focus:outline-none">
               <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
-                {user?.name?.charAt(0) || 'U'}
+                {user?.username?.charAt(0).toUpperCase() || 'U'}
               </div>
-              <span className="hidden md:block text-sm font-medium">{user?.name || 'User'}</span>
+              <span className="hidden md:block text-sm font-medium">{user?.username || 'User'}</span>
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
               </svg>
