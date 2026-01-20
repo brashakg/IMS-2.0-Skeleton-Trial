@@ -12,18 +12,18 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
   // Navigation items with role-based visibility
   const navigationItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: '📊', roles: [] }, // All roles
-    { name: 'POS / Sales', path: '/pos', icon: '🛒', roles: ['Sales Staff', 'Cashier', 'Store Manager', 'Admin', 'Superadmin'] },
-    { name: 'Inventory', path: '/inventory', icon: '📦', roles: ['Store Manager', 'Inventory Staff', 'Catalog Manager', 'Admin', 'Superadmin'] },
-    { name: 'Clinical', path: '/clinical', icon: '👁️', roles: ['Optometrist', 'Store Manager', 'Admin', 'Superadmin'] },
-    { name: 'HR & Attendance', path: '/hr', icon: '👥', roles: ['Store Manager', 'Admin', 'Superadmin'] },
-    { name: 'Payroll', path: '/payroll', icon: '💰', roles: ['Accountant', 'Admin', 'Superadmin'] },
-    { name: 'Finance', path: '/finance', icon: '💳', roles: ['Accountant', 'Admin', 'Superadmin'] },
-    { name: 'Tasks & SOPs', path: '/tasks', icon: '✓', roles: [] }, // All roles
-    { name: 'Expenses', path: '/expenses', icon: '💸', roles: [] }, // All roles (limited by screen)
-    { name: 'Marketplace', path: '/marketplace', icon: '🌐', roles: ['Marketplace Manager', 'Admin', 'Superadmin'] },
-    { name: 'AI Intelligence', path: '/ai', icon: '🤖', roles: ['Superadmin'], highlight: true }, // Superadmin only
-    { name: 'Setup', path: '/setup', icon: '⚙️', roles: ['Admin', 'Superadmin'] },
+    { name: 'Dashboard', path: '/dashboard', icon: '📊', roles: [] },
+    { name: 'POS / Sales', path: '/pos', icon: '🛒', roles: ['SALES_STAFF', 'CASHIER', 'OPTOMETRIST', 'STORE_MANAGER', 'ADMIN', 'SUPERADMIN'] },
+    { name: 'Inventory', path: '/inventory', icon: '📦', roles: ['STORE_MANAGER', 'CATALOG_MANAGER', 'INVENTORY_HQ_TEAM', 'ADMIN', 'SUPERADMIN'] },
+    { name: 'Clinical', path: '/clinical', icon: '👁️', roles: ['OPTOMETRIST', 'STORE_MANAGER', 'ADMIN', 'SUPERADMIN'] },
+    { name: 'HR & Attendance', path: '/hr', icon: '👥', roles: ['STORE_MANAGER', 'ADMIN', 'SUPERADMIN'] },
+    { name: 'Payroll', path: '/payroll', icon: '💰', roles: ['ACCOUNTANT', 'ADMIN', 'SUPERADMIN'] },
+    { name: 'Finance', path: '/finance', icon: '💳', roles: ['ACCOUNTANT', 'ADMIN', 'SUPERADMIN'] },
+    { name: 'Tasks & SOPs', path: '/tasks', icon: '✓', roles: [] },
+    { name: 'Expenses', path: '/expenses', icon: '💸', roles: [] },
+    { name: 'Marketplace', path: '/marketplace', icon: '🌐', roles: ['CATALOG_MANAGER', 'ADMIN', 'SUPERADMIN'] },
+    { name: 'AI Intelligence', path: '/ai', icon: '🤖', roles: ['SUPERADMIN'], highlight: true },
+    { name: 'Setup', path: '/setup', icon: '⚙️', roles: ['ADMIN', 'SUPERADMIN'] },
   ];
 
   // Filter navigation items based on user roles
