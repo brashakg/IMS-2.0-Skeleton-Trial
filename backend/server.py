@@ -1130,6 +1130,13 @@ async def get_stock_movements(product_id: str = None, location_id: str = None, u
     if product_id:
         query["product_id"] = product_id
     if location_id:
+        query["location_id"] = location_id
+    
+    movements = list(stock_movements_collection.find(query).sort("created_at", -1).limit(100))
+    for m in movements:
+        if '_id' in m:
+            m['_id'] = str(m['_id'])
+    return {"movements": movements}
 
 
 # ============================================================================
