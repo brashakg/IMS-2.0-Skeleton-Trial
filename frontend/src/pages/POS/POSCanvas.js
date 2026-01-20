@@ -551,8 +551,8 @@ const POSCanvas = () => {
             )}
             
             {cart.length > 0 && (
-              <Button variant="primary" className="w-full mt-4" onClick={handleReviewPricing}>
-                Review Pricing
+              <Button variant="primary" className="w-full mt-4" onClick={handleReviewPricing} disabled={loading}>
+                {loading ? 'Processing...' : 'Review Pricing'}
               </Button>
             )}
           </Card>
