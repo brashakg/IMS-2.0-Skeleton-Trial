@@ -639,7 +639,7 @@ async def request_discount(order_id: str, request: DiscountRequest):
             approved_discount_percent=request.requested_discount_percent,
             reason="Within role and category limits"
         )
-    elif status == DiscountRequestStatus.REQUIRES_APPROVAL:
+    elif status == DiscountRequestStatus.PENDING_APPROVAL:
         return DiscountRequestResponse(
             discount_request_id=discount_request_id,
             status=status,
