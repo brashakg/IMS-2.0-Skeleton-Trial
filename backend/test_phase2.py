@@ -309,7 +309,7 @@ def test_discount_exceeds_cap_requires_approval():
                 passed = discount_resp.status_code == 200
                 if passed:
                     discount_data = discount_resp.json()
-                    passed = discount_data.get("status") == "REQUIRES_APPROVAL"
+                    passed = discount_data.get("status") == "PENDING_APPROVAL"
                     print_test("Discount requires approval (15% exceeds 10% cap)", passed)
                     if passed:
                         print(f"     Status: {discount_data.get('status')}")
