@@ -20,6 +20,11 @@ discount_approvals_collection = db["discount_approvals"]
 discount_applications_collection = db["discount_applications"]
 audit_logs_collection = db["audit_logs"]
 
+# Phase 4 collections
+bills_collection = db["bills"]
+payments_collection = db["payments"]
+invoices_collection = db["invoices"]
+
 # Reference collections (read-only for Phase 2)
 users_collection = db["users"]
 roles_collection = db["roles"]
