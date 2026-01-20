@@ -258,7 +258,7 @@ async def create_order(request: CreateOrderRequest, user: Dict[str, Any] = Depen
         entity_type="ORDER",
         entity_id=order_id,
         action="CREATE",
-        actor_id=request.created_by,
+        actor_id=actual_user_id,
         role_context=active_role_id,
         trigger_source="POS",
         previous_state=None,
@@ -271,7 +271,7 @@ async def create_order(request: CreateOrderRequest, user: Dict[str, Any] = Depen
         order_number=order_number,
         state=OrderState.CREATED,
         created_at=order_doc["created_at"],
-        created_by=request.created_by
+        created_by=actual_user_id
     )
 
 
