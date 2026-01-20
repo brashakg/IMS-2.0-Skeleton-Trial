@@ -1238,9 +1238,10 @@ async def get_bill(bill_id: str):
 
 
 @app.post("/api/bills/{bill_id}/payments", response_model=PaymentResponse, status_code=201)
-async def record_payment(bill_id: str, request: RecordPaymentRequest):
+async def record_payment(bill_id: str, request: RecordPaymentRequest, user: Dict[str, Any] = Depends(require_role(["CASHIER", "STORE_MANAGER", "ADMIN", "SUPERADMIN"]))):
     """
     PHASE 4 API 3: Record Payment
+    Auth: Required (Cashier+)
     Supports partial and mixed payments
     Source: PHASE_4_API_LOCK.md
     """
