@@ -1,14 +1,41 @@
 // API Service for IMS 2.0
-// Phase 3A - Frontend API Integration
+// Auth-enabled API calls
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('ims_token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token && { 'Authorization': `Bearer ${token}` })
+  };
+};
+
 class APIService {
+  // Auth
+  static async login(username, password, location_id) {
+    const response = await fetch(`${API_BASE}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password, location_id })
+    });
+    if (!response.ok) throw await response.json();
+    return response.json();
+  }
+
+  static async getCurrentUser() {
+    const response = await fetch(`${API_BASE}/api/auth/me`, {
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) throw await response.json();
+    return response.json();
+  }
+
   // Orders
   static async createOrder(data) {
     const response = await fetch(`${API_BASE}/api/orders`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(data)
     });
     if (!response.ok) throw await response.json();
