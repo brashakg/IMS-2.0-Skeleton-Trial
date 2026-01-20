@@ -656,6 +656,8 @@ async def request_discount(order_id: str, request: DiscountRequest):
                 "reason_code": "DISCOUNT_NOT_ELIGIBLE",
                 "message": details.get("reason"),
                 "details": details
+            }
+        )
 
 
 @app.post("/api/discounts/{discount_request_id}/approve", response_model=DiscountApprovalResponse)
