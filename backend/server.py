@@ -62,6 +62,72 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # TODO: Restrict in production
     allow_credentials=True,
+
+
+# ============================================================================
+# AUTHENTICATION
+# ============================================================================
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+    location_id: str
+
+
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: Dict[str, Any]
+
+
+@app.post("/api/auth/login", response_model=LoginResponse)
+async def login(request: LoginRequest):
+    """Login endpoint - returns JWT token"""
+    
+    # Validate location exists
+    location = locations_collection.find_one({"id": request.location_id, "status": "ACTIVE"})
+    if not location:
+        raise HTTPException(
+            status_code=404,
+            detail={"error": True, "reason_code": "INVALID_LOCATION", "message": "Location not found or inactive"}
+        )
+    
+    # Authenticate user
+    user_data = authenticate_user(request.username, request.password, request.location_id)
+    
+    if not user_data:
+        raise HTTPException(
+            status_code=401,
+            detail={"error": True, "reason_code": "INVALID_CREDENTIALS", "message": "Invalid username, password, or no role at this location"}
+        )
+    
+    # Generate token
+    token = create_access_token(
+        user_id=user_data["user_id"],
+        roles=user_data["roles"],
+        location_id=user_data["location_id"]
+    )
+    
+    return LoginResponse(
+        access_token=token,
+        token_type="bearer",
+        user={
+            "user_id": user_data["user_id"],
+            "username": user_data["username"],
+            "email": user_data["email"],
+            "roles": user_data["roles"],
+            "location_id": user_data["location_id"],
+            "location_name": location.get("display_name")
+        }
+    )
+
+
+@app.get("/api/auth/me")
+async def get_current_user_info(user: Dict[str, Any] = Depends(get_current_user)):
+    """Get current authenticated user info"""
+    return {"user": user}
+
+
     allow_methods=["*"],
     allow_headers=["*"],
 )
