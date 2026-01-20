@@ -75,14 +75,20 @@ def seed_test_data():
     users_collection.insert_many(users_data)
     print("✓ Users seeded (9 users)")
     
-    # 4. Seed User-Role Assignments
+    # 4. Seed User-Role Assignments (ALL ROLES)
     user_roles_data = [
         {"id": str(uuid4()), "user_id": "user_sales1", "role_id": "role_sales", "location_id": "loc_store1", "active": True},
+        {"id": str(uuid4()), "user_id": "user_cashier1", "role_id": "role_cashier", "location_id": "loc_store1", "active": True},
+        {"id": str(uuid4()), "user_id": "user_optom1", "role_id": "role_optometrist", "location_id": "loc_store1", "active": True},
         {"id": str(uuid4()), "user_id": "user_manager1", "role_id": "role_manager", "location_id": "loc_store1", "active": True},
+        {"id": str(uuid4()), "user_id": "user_area_mgr1", "role_id": "role_area_manager", "location_id": "loc_hq", "active": True},
+        {"id": str(uuid4()), "user_id": "user_catalog1", "role_id": "role_catalog_manager", "location_id": "loc_hq", "active": True},
+        {"id": str(uuid4()), "user_id": "user_accountant1", "role_id": "role_accountant", "location_id": "loc_hq", "active": True},
         {"id": str(uuid4()), "user_id": "user_admin1", "role_id": "role_admin", "location_id": "loc_hq", "active": True},
+        {"id": str(uuid4()), "user_id": "user_super1", "role_id": "role_superadmin", "location_id": "loc_hq", "active": True},
     ]
     user_roles_collection.insert_many(user_roles_data)
-    print("✓ User-Role assignments seeded")
+    print("✓ User-Role assignments seeded (9 assignments)")
     
     # 5. Seed Discount Rules (from DISCOUNT_LOGIC_BY_CATEGORY.md)
     discount_rules_data = [
