@@ -91,6 +91,17 @@ async def login(request: LoginRequest):
     # Validate location exists
     location = locations_collection.find_one({"id": request.location_id, "status": "ACTIVE"})
     if not location:
+        # Audit failed login
+        AuditService.emit_event(
+            event_type=AuditEventType.UNAUTHORIZED_STATE_TRANSITION,
+            entity_type="AUTH",
+            entity_id="login_attempt",
+            action="LOGIN_FAILED",
+            actor_id=request.username,
+            role_context="NONE",
+            trigger_source="AUTH",
+            payload_snapshot={"username": request.username, "location_id": request.location_id, "reason": "invalid_location"}
+        )
         raise HTTPException(
             status_code=404,
             detail={"error": True, "reason_code": "INVALID_LOCATION", "message": "Location not found or inactive"}
@@ -100,6 +111,17 @@ async def login(request: LoginRequest):
     user_data = authenticate_user(request.username, request.password, request.location_id)
     
     if not user_data:
+        # Audit failed login
+        AuditService.emit_event(
+            event_type=AuditEventType.UNAUTHORIZED_STATE_TRANSITION,
+            entity_type="AUTH",
+            entity_id="login_attempt",
+            action="LOGIN_FAILED",
+            actor_id=request.username,
+            role_context="NONE",
+            trigger_source="AUTH",
+            payload_snapshot={"username": request.username, "location_id": request.location_id, "reason": "invalid_credentials"}
+        )
         raise HTTPException(
             status_code=401,
             detail={"error": True, "reason_code": "INVALID_CREDENTIALS", "message": "Invalid username, password, or no role at this location"}
@@ -110,6 +132,18 @@ async def login(request: LoginRequest):
         user_id=user_data["user_id"],
         roles=user_data["roles"],
         location_id=user_data["location_id"]
+    )
+    
+    # Audit successful login
+    AuditService.emit_event(
+        event_type=AuditEventType.ORDER_CREATED,  # Using existing enum, will add LOGIN_SUCCESS later
+        entity_type="AUTH",
+        entity_id=user_data["user_id"],
+        action="LOGIN_SUCCESS",
+        actor_id=user_data["user_id"],
+        role_context=user_data["roles"][0] if user_data["roles"] else "NONE",
+        trigger_source="AUTH",
+        payload_snapshot={"username": request.username, "location_id": request.location_id, "roles": user_data["roles"]}
     )
     
     return LoginResponse(
