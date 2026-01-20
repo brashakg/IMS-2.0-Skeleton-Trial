@@ -229,8 +229,14 @@ const POSCanvas = () => {
     setLoading(true);
     try {
       await APIService.lockPricing(orderId, user?.user_id || 'user_sales1');
-      alert('✅ Pricing locked successfully!\n\nOrder ready for billing (Phase 4)');
-      resetPOS();
+      alert('✅ Pricing locked successfully!\n\nOrder ready for billing');
+      
+      // Navigate to billing if user confirms
+      if (window.confirm('Proceed to billing?')) {
+        window.location.href = '/pos/billing';
+      } else {
+        resetPOS();
+      }
     } catch (error) {
       console.error('Failed to lock pricing:', error);
       alert('❌ Error: ' + (error.detail?.message || 'Lock failed'));
