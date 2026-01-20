@@ -1324,6 +1324,10 @@ async def search_products(category: str = "", search: str = ""):
     
     products = list(products_collection.find(query))
     
+    if search:
+        products = [p for p in products if search.lower() in p.get("name", "").lower()]
+    
+    return {"products": products}
 
 
 # ============================================================================
