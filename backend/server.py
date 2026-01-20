@@ -128,6 +128,15 @@ async def get_current_user_info(user: Dict[str, Any] = Depends(get_current_user)
     return {"user": user}
 
 
+@app.get("/api/locations")
+async def get_locations():
+    """Get all active locations"""
+    locations = list(locations_collection.find({"status": "ACTIVE"}))
+    return {"locations": locations}
+
+
+
+
     allow_methods=["*"],
     allow_headers=["*"],
 )
