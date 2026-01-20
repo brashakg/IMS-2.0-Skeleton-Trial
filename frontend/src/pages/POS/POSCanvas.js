@@ -223,7 +223,7 @@ const POSCanvas = () => {
   
   const handleLockPricing = async () => {
     try {
-      await APIService.lockPricing(orderId, user?.id || 'user_sales1');
+      await APIService.lockPricing(orderId, user?.user_id || 'user_sales1');
       alert('✅ Pricing locked successfully!\n\nOrder ready for billing (Phase 4)');
       resetPOS();
     } catch (error) {
