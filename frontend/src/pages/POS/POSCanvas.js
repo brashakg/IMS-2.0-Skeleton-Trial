@@ -40,6 +40,7 @@ const POSCanvas = () => {
   const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);
   const [showNewPatientForm, setShowNewPatientForm] = useState(false);
   const [customerSearch, setCustomerSearch] = useState('');
+  const [loading, setLoading] = useState(false);
   
   // Form state
   const [newCustomer, setNewCustomer] = useState({ name: '', mobile: '', email: '' });
