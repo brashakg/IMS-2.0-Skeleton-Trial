@@ -150,8 +150,8 @@ const POSCanvas = () => {
         const orderData = await APIService.createOrder({
           customer_id: selectedCustomer.id,
           patient_id: patient.id,
-          location_id: user?.store || 'loc_store1',
-          created_by: user?.id || 'user_sales1'
+          location_id: user?.location_id || 'loc_store1',
+          created_by: user?.user_id || 'user_sales1'
         });
         setOrderId(orderData.order_id);
       } catch (error) {
