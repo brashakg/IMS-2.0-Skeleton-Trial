@@ -54,7 +54,7 @@ class DiscountEnforcementService:
         if category_classification == CategoryClassification.LUXURY:
             if requested_discount_percent > 0:
                 return (
-                    DiscountRequestStatus.REQUIRES_APPROVAL,
+                    DiscountRequestStatus.PENDING_APPROVAL,
                     {
                         "reason": "Luxury category requires approval for any discount",
                         "role_cap": role_cap,
