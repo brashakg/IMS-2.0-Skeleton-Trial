@@ -20,6 +20,7 @@ import MarketplaceRoutes from './routes/MarketplaceRoutes';
 import AIRoutes from './routes/AIRoutes';
 import SetupRoutes from './routes/SetupRoutes';
 import EnquiryRoutes from './routes/EnquiryRoutes';
+import ReportsRoutes from './routes/ReportsRoutes';
 
 function App() {
   return (
