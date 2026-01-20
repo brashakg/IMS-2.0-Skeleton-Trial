@@ -94,7 +94,7 @@ def get_active_role(user_id: str, location_id: str) -> str:
 # PHASE 2 API ENDPOINTS
 # ============================================================================
 
-@app.post("/api/orders", response_model=OrderResponse)
+@app.post("/api/orders", response_model=OrderResponse, status_code=201)
 async def create_order(request: CreateOrderRequest):
     """
     API ENDPOINT 1: Create Order
