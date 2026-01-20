@@ -135,6 +135,10 @@ async def get_current_user_info(user: Dict[str, Any] = Depends(get_current_user)
 async def get_locations():
     """Get all active locations"""
     locations = list(locations_collection.find({"status": "ACTIVE"}))
+    # Convert ObjectId to string for JSON serialization
+    for loc in locations:
+        if '_id' in loc:
+            loc['_id'] = str(loc['_id'])
     return {"locations": locations}
 
 
