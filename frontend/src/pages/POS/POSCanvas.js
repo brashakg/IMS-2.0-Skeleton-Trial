@@ -71,6 +71,7 @@ const POSCanvas = () => {
   const handleCustomerSelect = async (customer) => {
     setSelectedCustomer(customer);
     setShowCustomerModal(false);
+    setShowNewCustomerForm(false);
     
     // Load patients
     try {
@@ -78,6 +79,57 @@ const POSCanvas = () => {
       setPatients(data.patients || []);
     } catch (error) {
       console.error('Failed to load patients:', error);
+    }
+  };
+  
+  const handleCreateNewCustomer = async () => {
+    if (!newCustomer.name || !newCustomer.mobile) {
+      alert('⚠️ Name and Mobile are required');
+      return;
+    }
+    
+    try {
+      const data = await APIService.createCustomer(newCustomer);
+      const customer = { id: data.customer_id, ...newCustomer };
+      
+      // Add to customer list and auto-select
+      setCustomers([...customers, customer]);
+      handleCustomerSelect(customer);
+      
+      // Reset form
+      setNewCustomer({ name: '', mobile: '', email: '' });
+    } catch (error) {
+      console.error('Failed to create customer:', error);
+      alert('❌ Error creating customer: ' + (error.detail?.message || 'Unknown error'));
+    }
+  };
+  
+  const handleCreateNewPatient = async () => {
+    if (!newPatient.name || !newPatient.age) {
+      alert('⚠️ Name and Age are required');
+      return;
+    }
+    
+    try {
+      const data = await APIService.createPatient({
+        customer_id: selectedCustomer.id,
+        name: newPatient.name,
+        age: parseInt(newPatient.age),
+        gender: newPatient.gender
+      });
+      
+      const patient = { id: data.patient_id, ...newPatient, customer_id: selectedCustomer.id };
+      
+      // Add to patient list and auto-select
+      setPatients([...patients, patient]);
+      handlePatientSelect(patient);
+      
+      // Reset form
+      setNewPatient({ name: '', age: '', gender: 'M' });
+      setShowNewPatientForm(false);
+    } catch (error) {
+      console.error('Failed to create patient:', error);
+      alert('❌ Error creating patient: ' + (error.detail?.message || 'Unknown error'));
     }
   };
   
