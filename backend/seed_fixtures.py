@@ -35,15 +35,22 @@ def seed_test_data():
     patients_collection.delete_many({})
     discount_rules_collection.delete_many({})
     
-    # 1. Seed Roles
+    # 1. Seed Roles (ALL ROLES from SYSTEM_INTENT.md)
     roles_data = [
-        {"id": "role_sales", "role_code": "SALES_STAFF", "description": "Sales Staff", "hierarchy_level": 5},
+        {"id": "role_superadmin", "role_code": "SUPERADMIN", "description": "Superadmin (CEO)", "hierarchy_level": 0},
+        {"id": "role_admin", "role_code": "ADMIN", "description": "Admin (HQ Directors)", "hierarchy_level": 1},
+        {"id": "role_area_manager", "role_code": "AREA_MANAGER", "description": "Area Manager", "hierarchy_level": 3},
         {"id": "role_manager", "role_code": "STORE_MANAGER", "description": "Store Manager", "hierarchy_level": 3},
-        {"id": "role_admin", "role_code": "ADMIN", "description": "Admin", "hierarchy_level": 1},
-        {"id": "role_superadmin", "role_code": "SUPERADMIN", "description": "Superadmin", "hierarchy_level": 0},
+        {"id": "role_catalog_manager", "role_code": "CATALOG_MANAGER", "description": "Catalog Manager (HQ)", "hierarchy_level": 4},
+        {"id": "role_inventory_hq", "role_code": "INVENTORY_HQ_TEAM", "description": "Inventory HQ Team", "hierarchy_level": 4},
+        {"id": "role_accountant", "role_code": "ACCOUNTANT", "description": "Accountant / Finance", "hierarchy_level": 4},
+        {"id": "role_optometrist", "role_code": "OPTOMETRIST", "description": "Optometrist", "hierarchy_level": 5},
+        {"id": "role_sales", "role_code": "SALES_STAFF", "description": "Sales Staff", "hierarchy_level": 5},
+        {"id": "role_cashier", "role_code": "CASHIER", "description": "Cashier", "hierarchy_level": 5},
+        {"id": "role_workshop", "role_code": "WORKSHOP_STAFF", "description": "Workshop / Fitting Staff", "hierarchy_level": 6},
     ]
     roles_collection.insert_many(roles_data)
-    print("✓ Roles seeded")
+    print("✓ Roles seeded (11 roles)")
     
     # 2. Seed Locations
     locations_data = [
