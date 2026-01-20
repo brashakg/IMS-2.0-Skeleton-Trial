@@ -941,5 +941,87 @@ async def lock_pricing(order_id: str, request: LockPricingRequest):
 
 
 if __name__ == "__main__":
+
+
+# ============================================================================
+# PHASE 3A STUB APIs (Read-only, minimal implementation)
+# ============================================================================
+
+@app.get("/api/customers")
+async def search_customers(search: str = ""):
+    """STUB: Customer search (Phase 3A requirement)"""
+    customers = list(customers_collection.find({}))
+    if search:
+        customers = [c for c in customers if search.lower() in c.get("name", "").lower() or search in c.get("mobile", "")]
+    return {"customers": customers}
+
+
+@app.post("/api/customers")
+async def create_customer(data: Dict[str, Any]):
+    """STUB: Create customer (Phase 3A requirement)"""
+    customer_id = str(uuid4())
+    customer_doc = {
+        "id": customer_id,
+        "name": data.get("name"),
+        "mobile": data.get("mobile"),
+        "email": data.get("email"),
+        "created_at": datetime.utcnow()
+    }
+    customers_collection.insert_one(customer_doc)
+    return {"customer_id": customer_id, "name": customer_doc["name"]}
+
+
+@app.get("/api/customers/{customer_id}/patients")
+async def get_customer_patients(customer_id: str):
+    """STUB: Get patients for customer (Phase 3A requirement)"""
+    patients = list(patients_collection.find({"customer_id": customer_id}))
+    return {"patients": patients}
+
+
+@app.post("/api/patients")
+async def create_patient(data: Dict[str, Any]):
+    """STUB: Create patient (Phase 3A requirement)"""
+    patient_id = str(uuid4())
+    patient_doc = {
+        "id": patient_id,
+        "customer_id": data.get("customer_id"),
+        "name": data.get("name"),
+        "age": data.get("age"),
+        "gender": data.get("gender"),
+        "created_at": datetime.utcnow()
+    }
+    patients_collection.insert_one(patient_doc)
+    return {"patient_id": patient_id, "name": patient_doc["name"]}
+
+
+@app.get("/api/patients/{patient_id}/prescriptions")
+async def get_patient_prescriptions(patient_id: str):
+    """STUB: Get prescriptions for patient (CRITICAL for optical flow)"""
+    prescriptions = list(prescriptions_collection.find({"patient_id": patient_id}))
+    return {"prescriptions": prescriptions}
+
+
+@app.get("/api/products")
+async def search_products(category: str = "", search: str = ""):
+    """STUB: Product search (Phase 3A requirement)"""
+    query = {}
+    if category:
+        query["category"] = category.upper()
+    
+    products = list(products_collection.find(query))
+    
+    if search:
+        products = [p for p in products if search.lower() in p.get("name", "").lower()]
+    
+    return {"products": products}
+
+
+@app.get("/api/discounts/pending")
+async def get_pending_discounts():
+    """STUB: Get pending discount approvals (Phase 3A requirement)"""
+    pending = list(discount_requests_collection.find({"status": "PENDING_APPROVAL"}))
+    return {"pending_approvals": pending}
+
+
     import uvicorn
     uvicorn.run("server:app", host="0.0.0.0", port=8001, reload=True)
