@@ -136,7 +136,11 @@ class APIService {
 
   static async getPatientPrescriptions(patientId) {
     const response = await fetch(`${API_BASE}/api/patients/${patientId}/prescriptions`, {
-
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) await handleApiError(response);
+    return response.json();
+  }
 
   // Enquiries
   static async createEnquiry(data) {
