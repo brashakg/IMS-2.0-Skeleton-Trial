@@ -1228,6 +1228,10 @@ async def create_bill(request: CreateBillRequest, user: Dict[str, Any] = Depends
     
     bills_collection.insert_one(bill_doc)
     
+    # Deduct stock (Sprint 2: Inventory execution)
+    order_items = list(order_items_collection.find({"order_id": request.order_id}))
+    InventoryService.deduct_stock_on_billing(bill_id, request.order_id, order_items, order["location_id"])
+    
     # Update order state
     orders_collection.update_one(
         {"id": request.order_id},
