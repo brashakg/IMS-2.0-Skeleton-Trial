@@ -49,6 +49,7 @@ from state_machine import StateMachineValidator
 from category_enforcement import CategoryEnforcementService
 from discount_enforcement import DiscountEnforcementService
 from billing_guards import BillingGuards, PaymentGuards
+from inventory_service import InventoryService
 from auth import create_access_token, authenticate_user, get_current_user, require_role
 from permissions import check_permission
 from datetime import datetime
