@@ -1626,12 +1626,6 @@ async def get_invoice(invoice_id: str):
     return invoice
 
 
-    if search:
-        products = [p for p in products if search.lower() in p.get("name", "").lower()]
-    
-    return {"products": products}
-
-
 @app.get("/api/discounts/pending")
 async def get_pending_discounts():
     """STUB: Get pending discount approvals (Phase 3A requirement)"""
