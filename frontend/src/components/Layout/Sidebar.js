@@ -14,6 +14,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const navigationItems = [
     { name: 'Dashboard', path: '/dashboard', icon: '📊', roles: [] },
     { name: 'POS / Sales', path: '/pos', icon: '🛒', roles: ['SALES_STAFF', 'CASHIER', 'OPTOMETRIST', 'STORE_MANAGER', 'ADMIN', 'SUPERADMIN'] },
+    { name: 'Enquiry', path: '/enquiry', icon: '📝', roles: ['SALES_STAFF', 'STORE_MANAGER', 'ADMIN', 'SUPERADMIN'] },
     { name: 'Inventory', path: '/inventory', icon: '📦', roles: ['STORE_MANAGER', 'CATALOG_MANAGER', 'INVENTORY_HQ_TEAM', 'ADMIN', 'SUPERADMIN'] },
     { name: 'Clinical', path: '/clinical', icon: '👁️', roles: ['OPTOMETRIST', 'STORE_MANAGER', 'ADMIN', 'SUPERADMIN'] },
     { name: 'HR & Attendance', path: '/hr', icon: '👥', roles: ['STORE_MANAGER', 'ADMIN', 'SUPERADMIN'] },
