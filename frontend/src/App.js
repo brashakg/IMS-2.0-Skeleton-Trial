@@ -19,6 +19,7 @@ import ExpensesRoutes from './routes/ExpensesRoutes';
 import MarketplaceRoutes from './routes/MarketplaceRoutes';
 import AIRoutes from './routes/AIRoutes';
 import SetupRoutes from './routes/SetupRoutes';
+import EnquiryRoutes from './routes/EnquiryRoutes';
 
 function App() {
   return (
