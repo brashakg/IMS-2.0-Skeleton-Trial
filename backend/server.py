@@ -1126,6 +1126,9 @@ async def create_bill(request: CreateBillRequest, user: Dict[str, Any] = Depends
     Source: PHASE_4_API_LOCK.md
     """
     
+    # Guard: Prevent double billing
+    BillingGuards.prevent_double_billing(request.order_id)
+    
     # Fetch order
     order = orders_collection.find_one({"id": request.order_id})
     if not order:
