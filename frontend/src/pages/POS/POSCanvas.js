@@ -579,8 +579,8 @@ const POSCanvas = () => {
                 </div>
                 
                 <div className="pt-3 border-t space-y-2">
-                  <Button variant="success" className="w-full" onClick={handleLockPricing}>
-                    🔒 Lock & Proceed
+                  <Button variant="success" className="w-full" onClick={handleLockPricing} disabled={loading}>
+                    {loading ? 'Locking...' : '🔒 Lock & Proceed'}
                   </Button>
                   <p className="text-xs text-center text-gray-500">Pricing will be locked (irreversible)</p>
                 </div>
