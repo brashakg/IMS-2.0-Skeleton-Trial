@@ -133,6 +133,23 @@ def seed_test_data():
     products_collection.insert_many(products_data)
     print("✓ Products seeded")
     
+
+    
+    # 10. Seed Initial Stock (Sprint 2)
+    from database import db
+    stock_collection = db["stock"]
+    stock_collection.delete_many({})
+    
+    stock_data = [
+        {"id": str(uuid4()), "product_id": "prod_frame_mass1", "location_id": "loc_store1", "quantity": 50, "created_at": datetime.utcnow()},
+        {"id": str(uuid4()), "product_id": "prod_frame_luxury1", "location_id": "loc_store1", "quantity": 20, "created_at": datetime.utcnow()},
+        {"id": str(uuid4()), "product_id": "prod_lens_std1", "location_id": "loc_store1", "quantity": 100, "created_at": datetime.utcnow()},
+        {"id": str(uuid4()), "product_id": "prod_lens_premium1", "location_id": "loc_store1", "quantity": 40, "created_at": datetime.utcnow()},
+        {"id": str(uuid4()), "product_id": "prod_acc1", "location_id": "loc_store1", "quantity": 200, "created_at": datetime.utcnow()},
+    ]
+    stock_collection.insert_many(stock_data)
+    print("✓ Stock initialized")
+
     # 7. Seed Customers
     customers_data = [
         {"id": "cust1", "name": "Test Customer 1", "mobile": "9876543210", "email": "cust1@test.com", "created_at": datetime.utcnow()},
