@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import APIService from '../services/api';
 
-// Auth Context for user authentication and role management
 const AuthContext = createContext(null);
 
 export const useAuth = () => {
@@ -16,26 +16,29 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Check for stored session
-    // For now, set a mock user for development
-    // In production, this will check localStorage/sessionStorage and validate token
-    const storedUser = localStorage.getItem('ims_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    // Check for stored token and validate
+    const token = localStorage.getItem('ims_token');
+    if (token) {
+      // Verify token by fetching current user
+      APIService.getCurrentUser()
+        .then(data => setUser(data.user))
+        .catch(() => {
+          // Token invalid, clear it
+          localStorage.removeItem('ims_token');
+        })
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   const login = (userData) => {
-    // TODO: API call to authenticate
-    // For now, just store user data
     setUser(userData);
-    localStorage.setItem('ims_user', JSON.stringify(userData));
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('ims_user');
+    localStorage.removeItem('ims_token');
   };
 
   const hasRole = (role) => {
