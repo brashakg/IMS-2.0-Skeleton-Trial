@@ -536,44 +536,97 @@ const POSCanvas = () => {
       {/* Customer Selection Modal */}
       {showCustomerModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-screen overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold">Select Customer</h3>
-                <button onClick={() => setShowCustomerModal(false)} className="text-gray-500 hover:text-gray-700 text-2xl">
+                <h3 className="text-xl font-bold">Select or Create Customer</h3>
+                <button onClick={() => { setShowCustomerModal(false); setShowNewCustomerForm(false); }} className="text-gray-500 hover:text-gray-700 text-2xl">
                   ×
                 </button>
               </div>
               
-              <div className="mb-4">
-                <input
-                  type="text"
-                  placeholder="Search by mobile or name"
-                  value={customerSearch}
-                  onChange={(e) => setCustomerSearch(e.target.value)}
-                  className="w-full px-4 py-2 border rounded-lg"
-                />
-              </div>
-              
-              <div className="max-h-96 overflow-y-auto space-y-2">
-                {customers.filter(c =>
-                  c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
-                  c.mobile.includes(customerSearch)
-                ).map((customer) => (
-                  <div
-                    key={customer.id}
-                    onClick={() => handleCustomerSelect(customer)}
-                    className="p-4 border rounded-lg cursor-pointer hover:bg-blue-50"
-                  >
-                    <p className="font-semibold">{customer.name}</p>
-                    <p className="text-sm text-gray-600">{customer.mobile}</p>
+              {!showNewCustomerForm ? (
+                <>
+                  <div className="mb-4">
+                    <input
+                      type="text"
+                      placeholder="Search by mobile or name"
+                      value={customerSearch}
+                      onChange={(e) => setCustomerSearch(e.target.value)}
+                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
                   </div>
-                ))}
-              </div>
-              
-              <div className="mt-4">
-                <Button variant="outline" className="w-full">+ Create New Customer</Button>
-              </div>
+                  
+                  <div className="max-h-96 overflow-y-auto space-y-2 mb-4">
+                    {customers.filter(c =>
+                      c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
+                      c.mobile.includes(customerSearch)
+                    ).map((customer) => (
+                      <div
+                        key={customer.id}
+                        onClick={() => handleCustomerSelect(customer)}
+                        className="p-4 border rounded-lg cursor-pointer hover:bg-blue-50 transition-colors"
+                      >
+                        <p className="font-semibold">{customer.name}</p>
+                        <p className="text-sm text-gray-600">{customer.mobile}</p>
+                        {customer.email && <p className="text-xs text-gray-500">{customer.email}</p>}
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <Button variant="primary" className="w-full" onClick={() => setShowNewCustomerForm(true)}>
+                    + Create New Customer
+                  </Button>
+                </>
+              ) : (
+                <div className="space-y-4">
+                  <div className="bg-blue-50 p-3 rounded-lg">
+                    <p className="text-sm text-blue-800 font-medium">New Customer Form</p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                    <input
+                      type="text"
+                      value={newCustomer.name}
+                      onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
+                      placeholder="Enter customer name"
+                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Mobile *</label>
+                    <input
+                      type="tel"
+                      value={newCustomer.mobile}
+                      onChange={(e) => setNewCustomer({ ...newCustomer, mobile: e.target.value })}
+                      placeholder="Enter mobile number"
+                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Email (Optional)</label>
+                    <input
+                      type="email"
+                      value={newCustomer.email}
+                      onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
+                      placeholder="Enter email"
+                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button variant="primary" className="flex-1" onClick={handleCreateNewCustomer}>
+                      Create Customer
+                    </Button>
+                    <Button variant="outline" className="flex-1" onClick={() => setShowNewCustomerForm(false)}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
