@@ -754,9 +754,10 @@ async def request_discount(order_id: str, request: DiscountRequest):
 
 
 @app.post("/api/discounts/{discount_request_id}/approve", response_model=DiscountApprovalResponse)
-async def approve_discount(discount_request_id: str, request: ApproveDiscountRequest):
+async def approve_discount(discount_request_id: str, request: ApproveDiscountRequest, user: Dict[str, Any] = Depends(require_role(["STORE_MANAGER", "AREA_MANAGER", "ADMIN", "SUPERADMIN"]))):
     """
     API ENDPOINT 5: Approve Discount
+    Auth: Required (Manager+)
     Source: PHASE_2_API_SPECIFICATIONS.md
     """
     
