@@ -1039,9 +1039,6 @@ async def lock_pricing(order_id: str, request: LockPricingRequest):
     )
 
 
-if __name__ == "__main__":
-
-
 # ============================================================================
 # PHASE 3A STUB APIs (Read-only, minimal implementation)
 # ============================================================================
