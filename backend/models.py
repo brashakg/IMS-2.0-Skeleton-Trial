@@ -171,6 +171,109 @@ class DiscountRequestResponse(BaseModel):
     message: Optional[str] = None
 
 
+
+
+# ============================================================================
+# PHASE 4 MODELS (Billing, Payments, Invoice)
+# ============================================================================
+
+class PaymentMode(str, Enum):
+    """Payment modes"""
+    CASH = "CASH"
+    UPI = "UPI"
+    CARD = "CARD"
+    NET_BANKING = "NET_BANKING"
+
+
+class CreateBillRequest(BaseModel):
+    """Request to create bill from PRICING_LOCKED order"""
+    order_id: str
+    created_by: str  # user_id
+
+
+class RecordPaymentRequest(BaseModel):
+    """Request to record payment against bill"""
+    payment_mode: PaymentMode
+    amount: float = Field(gt=0)
+    reference: Optional[str] = None
+    collected_by: str  # user_id
+
+
+class GenerateInvoiceRequest(BaseModel):
+    """Request to generate invoice (only after full payment)"""
+    bill_id: str
+    generated_by: str  # user_id
+
+
+class BillResponse(BaseModel):
+    """Bill response"""
+    bill_id: str
+    bill_number: str
+    order_id: str
+    total_amount: float
+    outstanding_balance: float
+    pricing_snapshot: Dict[str, Any]
+    created_at: datetime
+    created_by: str
+    immutable: bool = True
+
+
+class PaymentResponse(BaseModel):
+    """Payment response"""
+    payment_id: str
+    bill_id: str
+    payment_mode: PaymentMode
+    amount: float
+    reference: Optional[str]
+    collected_by: str
+    collected_at: datetime
+    outstanding_after_payment: float
+
+
+class InvoiceResponse(BaseModel):
+    """Invoice response"""
+    invoice_id: str
+    invoice_number: str
+    bill_id: str
+    issue_date: datetime
+    total_amount: float
+    generated_by: str
+    immutable: bool = True
+
+
+# Database Documents
+class BillDocument(BaseModel):
+    """Bill document (MongoDB)"""
+    id: str = Field(default_factory=lambda: str(uuid4()))
+    bill_number: str
+    order_id: str
+    total_amount: float
+    outstanding_balance: float
+    pricing_snapshot: Dict[str, Any]
+    created_by: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class PaymentDocument(BaseModel):
+    """Payment document (MongoDB) - Append-only"""
+    id: str = Field(default_factory=lambda: str(uuid4()))
+    bill_id: str
+    payment_mode: PaymentMode
+    amount: float
+    reference: Optional[str] = None
+    collected_by: str
+    collected_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class InvoiceDocument(BaseModel):
+    """Invoice document (MongoDB)"""
+    id: str = Field(default_factory=lambda: str(uuid4()))
+    invoice_number: str
+    bill_id: str
+    issue_date: datetime = Field(default_factory=datetime.utcnow)
+    total_amount: float
+    generated_by: str
+
 class DiscountApprovalResponse(BaseModel):
     """Discount approval response"""
     discount_approval_id: str
