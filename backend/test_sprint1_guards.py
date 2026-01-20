@@ -2,8 +2,8 @@ import requests
 
 BASE = "http://localhost:8001/api"
 
-# Login
-token_resp = requests.post(f"{BASE}/auth/login", json={"username": "sales1", "password": "test", "location_id": "loc_store1"})
+# Login as cashier (has billing permission)
+token_resp = requests.post(f"{BASE}/auth/login", json={"username": "cashier1", "password": "test", "location_id": "loc_store1"})
 token = token_resp.json()["access_token"]
 headers = {"Authorization": f"Bearer {token}"}
 
