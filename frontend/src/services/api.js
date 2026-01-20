@@ -11,6 +11,15 @@ const getAuthHeaders = () => {
   };
 };
 
+const handleApiError = async (response) => {
+  const error = await response.json();
+  if (response.status === 401 && error.detail?.reason_code === 'TOKEN_EXPIRED') {
+    localStorage.removeItem('ims_token');
+    window.location.href = '/login';
+  }
+  throw error;
+};
+
 class APIService {
   // Auth
   static async login(username, password, location_id) {
@@ -19,7 +28,7 @@ class APIService {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password, location_id })
     });
-    if (!response.ok) throw await response.json();
+    if (!response.ok) await handleApiError(response);
     return response.json();
   }
 
@@ -27,7 +36,7 @@ class APIService {
     const response = await fetch(`${API_BASE}/api/auth/me`, {
       headers: getAuthHeaders()
     });
-    if (!response.ok) throw await response.json();
+    if (!response.ok) await handleApiError(response);
     return response.json();
   }
 
