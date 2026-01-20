@@ -6,17 +6,27 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Primary brand colors (25% darker from original #E53935)
+        brand: {
+          primary: '#A82824',    // Main red (25% darker)
+          light: '#C93834',      // Lighter variant
+          dark: '#7A1D1A',       // Darker variant
+        },
         // System-enforced priority colors (non-customizable)
         priority: {
-          high: '#EF4444',      // Red
-          medium: '#F59E0B',    // Orange
-          low: '#10B981',       // Green
+          high: '#C62828',       // Dark Red
+          medium: '#D68400',     // Dark Orange
+          low: '#0D8A68',        // Dark Green
         },
         status: {
-          active: '#10B981',    // Green
-          pending: '#F59E0B',   // Orange
-          inactive: '#6B7280',  // Gray
-          error: '#EF4444',     // Red
+          active: '#0D8A68',     // Dark Green
+          pending: '#D68400',    // Dark Orange
+          inactive: '#525252',   // Dark Gray
+          error: '#C62828',      // Dark Red
+        },
+        // Accent colors
+        accent: {
+          orange: '#D68400',     // 25% darker from #fd7e14
         }
       },
     },
