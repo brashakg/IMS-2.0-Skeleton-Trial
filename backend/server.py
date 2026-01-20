@@ -509,6 +509,158 @@ async def review_pricing(order_id: str, request: ReviewPricingRequest):
     )
 
 
+@app.post("/api/orders/{order_id}/discounts/request", response_model=DiscountRequestResponse)
+async def request_discount(order_id: str, request: DiscountRequest):
+    """
+    API ENDPOINT 4: Request Discount
+    Pre-condition: Order in PRICING_REVIEWED state (before lock)
+    Source: PHASE_2_API_SPECIFICATIONS.md
+    """
+    
+    # Fetch order
+    order = orders_collection.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail={"error": True, "reason_code": "ENTITY_NOT_FOUND", "message": "Order not found"})
+    
+    current_state = OrderState(order["state"])
+    
+    # State validation: Can only request discount in PRICING_REVIEWED
+    if current_state != OrderState.PRICING_REVIEWED:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "error": True,
+                "reason_code": "INVALID_STATE_FOR_DISCOUNT",
+                "message": "Discounts can only be requested in PRICING_REVIEWED state",
+                "current_state": current_state.value
+            }
+        )
+    
+    # Fetch order item
+    order_item = order_items_collection.find_one({"id": request.order_item_id, "order_id": order_id})
+    if not order_item:
+        raise HTTPException(status_code=404, detail={"error": True, "reason_code": "ENTITY_NOT_FOUND", "message": "Order item not found"})
+    
+    # Get active role
+    active_role_id = get_active_role(request.requested_by, order["location_id"])
+    
+    # Fetch product for category info
+    product = products_collection.find_one({"id": order_item["product_id"]})
+    if not product:
+        raise HTTPException(status_code=404, detail={"error": True, "reason_code": "ENTITY_NOT_FOUND", "message": "Product not found"})
+    
+    category = product.get("category", "UNKNOWN")
+    category_classification = CategoryClassification(product.get("category_classification", "MASS"))
+    mrp = product.get("mrp", 0.0)
+    offer_price = product.get("offer_price", mrp)
+    
+    # Evaluate discount request (Role × Category × Context)
+    status, details = DiscountEnforcementService.evaluate_discount_request(
+        requested_discount_percent=request.requested_discount_percent,
+        user_id=request.requested_by,
+        active_role_id=active_role_id,
+        category=category,
+        category_classification=category_classification,
+        mrp=mrp,
+        offer_price=offer_price
+    )
+    
+    # Create discount request record
+    discount_request_id = str(uuid4())
+    discount_request_doc = {
+        "id": discount_request_id,
+        "order_id": order_id,
+        "order_item_id": request.order_item_id,
+        "requested_discount_percent": request.requested_discount_percent,
+        "requested_by": request.requested_by,
+        "role_id": active_role_id,
+        "category": category,
+        "category_classification": category_classification.value,
+        "role_cap": details.get("role_cap", 0.0),
+        "category_cap": details.get("category_cap", 0.0),
+        "status": status.value,
+        "reason": request.reason,
+        "created_at": datetime.utcnow()
+    }
+    
+    discount_requests_collection.insert_one(discount_request_doc)
+    
+    # If auto-approved, apply discount immediately
+    if status == DiscountRequestStatus.AUTO_APPROVED:
+        # Apply discount to order_item
+        discounted_price = offer_price * (1 - request.requested_discount_percent / 100)
+        order_items_collection.update_one(
+            {"id": request.order_item_id},
+            {"$set": {
+                "discount_applied": request.requested_discount_percent,
+                "final_price": discounted_price * order_item["quantity"]
+            }}
+        )
+        
+        # Emit DISCOUNT_APPLIED event
+        AuditService.emit_event(
+            event_type=AuditEventType.DISCOUNT_APPLIED,
+            entity_type="ORDER_ITEM",
+            entity_id=request.order_item_id,
+            action="APPLY_DISCOUNT",
+            actor_id="system",
+            role_context="system",
+            trigger_source="SYSTEM",
+            previous_state={"discount": 0},
+            new_state={"discount": request.requested_discount_percent},
+            payload_snapshot={"discount_request_id": discount_request_id}
+        )
+    
+    # Emit audit event
+    AuditService.emit_event(
+        event_type=AuditEventType.DISCOUNT_REQUESTED,
+        entity_type="DISCOUNT_REQUEST",
+        entity_id=discount_request_id,
+        action="REQUEST",
+        actor_id=request.requested_by,
+        role_context=active_role_id,
+        trigger_source="POS",
+        previous_state=None,
+        new_state=status.value,
+        payload_snapshot={
+            "requested_percent": request.requested_discount_percent,
+            "role_cap": details.get("role_cap"),
+            "category_cap": details.get("category_cap"),
+            "enforcement_decision": status.value,
+            "details": details
+        }
+    )
+    
+    # Response based on status
+    if status == DiscountRequestStatus.AUTO_APPROVED:
+        return DiscountRequestResponse(
+            discount_request_id=discount_request_id,
+            status=status,
+            approved_discount_percent=request.requested_discount_percent,
+            reason="Within role and category limits"
+        )
+    elif status == DiscountRequestStatus.REQUIRES_APPROVAL:
+        return DiscountRequestResponse(
+            discount_request_id=discount_request_id,
+            status=status,
+            role_cap=details.get("role_cap"),
+            category_cap=details.get("category_cap"),
+            approver_role_required=details.get("approver_role_required"),
+            message=details.get("reason")
+        )
+    else:  # BLOCKED
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "error": True,
+                "reason_code": "DISCOUNT_NOT_ELIGIBLE",
+                "message": details.get("reason"),
+                "details": details
+            }
+        )
+
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("server:app", host="0.0.0.0", port=8001, reload=True)
