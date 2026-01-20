@@ -370,7 +370,7 @@ def test_luxury_category_always_requires_approval():
             passed = discount_resp.status_code == 200
             if passed:
                 discount_data = discount_resp.json()
-                passed = discount_data.get("status") == "REQUIRES_APPROVAL"
+                passed = discount_data.get("status") == "PENDING_APPROVAL"
                 print_test("Luxury requires approval (even 1%)", passed)
                 if passed:
                     print(f"     Status: {discount_data.get('status')}")
